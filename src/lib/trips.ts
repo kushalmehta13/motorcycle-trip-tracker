@@ -1,4 +1,4 @@
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { trips, type Trip } from "@/db/schema";
 
@@ -22,4 +22,14 @@ export function accentForTag(tag: string): string {
 export async function getTrips(): Promise<Trip[]> {
   const db = getDb();
   return db.select().from(trips).orderBy(asc(trips.id));
+}
+
+export async function getTripBySlug(slug: string): Promise<Trip | undefined> {
+  const db = getDb();
+  const [trip] = await db
+    .select()
+    .from(trips)
+    .where(eq(trips.slug, slug))
+    .limit(1);
+  return trip;
 }

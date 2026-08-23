@@ -31,6 +31,11 @@
   color: var(--color-paper);
 }
 
+*:focus-visible {
+  outline: 3px solid var(--color-accent-pink);
+  outline-offset: 2px;
+}
+
 body {
   background: var(--color-paper);
   color: var(--color-ink);

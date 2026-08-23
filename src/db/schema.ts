@@ -1,4 +1,12 @@
-import { pgTable, real, serial, text, timestamp, jsonb } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  real,
+  serial,
+  text,
+  timestamp,
+  jsonb,
+  integer,
+} from "drizzle-orm/pg-core";
 
 export type LatLng = [number, number];
 
@@ -10,6 +18,8 @@ export const trips = pgTable("trips", {
   durationHours: real("duration_hours").notNull(),
   moodTag: text("mood_tag").notNull(),
   description: text("description").notNull(),
+  difficulty: integer("difficulty").notNull().default(3),
+  bestSeason: text("best_season"),
   route: jsonb("route").$type<LatLng[]>().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()

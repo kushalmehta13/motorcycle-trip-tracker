@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Trip } from "@/db/schema";
 import { accentForTag } from "@/lib/trips";
 import RouteMap from "./RouteMap";
@@ -14,7 +15,10 @@ export default function TripCard({ trip }: { trip: Trip }) {
   const accent = accentForTag(trip.moodTag);
 
   return (
-    <article className="brutal-card flex flex-col bg-white transition-[transform,box-shadow] duration-150 ease-out hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0_0_var(--color-ink)]">
+    <Link
+      href={`/trips/${trip.slug}`}
+      className="brutal-card flex flex-col bg-white transition-[transform,box-shadow] duration-150 ease-out hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0_0_var(--color-ink)]"
+    >
       <div className="h-44 shrink-0 overflow-hidden border-b-[3px] border-ink bg-paper">
         <RouteMap points={trip.route} color={accent} />
       </div>
@@ -42,6 +46,6 @@ export default function TripCard({ trip }: { trip: Trip }) {
         </div>
         <div className="py-2.5">{formatDuration(trip.durationHours)}</div>
       </div>
-    </article>
+    </Link>
   );
 }

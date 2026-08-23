@@ -17,9 +17,11 @@ const ClientMap = dynamic(() => import("./LeafletMap"), {
 export default function RouteMap({
   points,
   color,
+  interactive = false,
 }: {
   points: LatLngExpression[];
   color: string;
+  interactive?: boolean;
 }) {
-  return <ClientMap points={points} color={color} />;
+  return <ClientMap points={points} color={color} interactive={interactive} />;
 }

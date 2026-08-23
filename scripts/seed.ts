@@ -2,6 +2,7 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 config();
 
+import { sql } from "drizzle-orm";
 import { getDb } from "../src/db";
 import { trips, type NewTrip } from "../src/db/schema";
 
@@ -14,6 +15,8 @@ const seedTrips: NewTrip[] = [
     moodTag: "Twisty & Technical",
     description:
       "318 curves in 11 miles on the NC/TN line. No intersections, no driveways, nowhere to stop — fill up before you drop in.",
+    difficulty: 5,
+    bestSeason: "Apr – Oct",
     route: [
       [35.4686, -83.9286],
       [35.4712, -83.918],
@@ -37,6 +40,8 @@ const seedTrips: NewTrip[] = [
     moodTag: "Coastal Cruise",
     description:
       "Ocean on your right for 60 straight miles. Fog rolls in after 3pm and cyclists own the shoulders around Bixby Bridge.",
+    difficulty: 2,
+    bestSeason: "Year-round",
     route: [
       [36.5552, -121.9233],
       [36.5398, -121.9384],
@@ -66,6 +71,8 @@ const seedTrips: NewTrip[] = [
     moodTag: "Scenic Chill",
     description:
       "Gentle sweepers at 5,000 ft with long-range mountain views. Empty early in the morning; pack a layer even in July.",
+    difficulty: 2,
+    bestSeason: "May – Oct",
     route: [
       [35.568, -82.555],
       [35.5435, -82.5462],
@@ -91,6 +98,8 @@ const seedTrips: NewTrip[] = [
     moodTag: "High Desert Sweepers",
     description:
       "Climb straight out of the LA basin to 7,000 ft. Zero services past Red Box and rockfall after storms — eyes up in the corners.",
+    difficulty: 4,
+    bestSeason: "Apr – Nov",
     route: [
       [34.208, -118.2],
       [34.226, -118.14],
@@ -114,6 +123,8 @@ const seedTrips: NewTrip[] = [
     moodTag: "Granite Gauntlet",
     description:
       "Pigtail bridges and tunnels bored through solid granite in the Black Hills. Bison own the road here — they always have right of way.",
+    difficulty: 3,
+    bestSeason: "May – Sep",
     route: [
       [43.878, -103.5],
       [43.8865, -103.5212],
@@ -138,6 +149,8 @@ const seedTrips: NewTrip[] = [
     moodTag: "Hairpin Heaven",
     description:
       "48 numbered switchbacks up the eastern Alps from Prato. Cold at the summit even in August — gear up before you leave Bormio.",
+    difficulty: 4,
+    bestSeason: "Jun – Sep",
     route: [
       [46.618, 10.595],
       [46.605, 10.57],
@@ -156,9 +169,22 @@ async function main() {
   const db = getDb();
 
   console.log(`Seeding ${seedTrips.length} trips…`);
-  await db.insert(trips).values(seedTrips).onConflictDoNothing({
-    target: trips.slug,
-  });
+  await db
+    .insert(trips)
+    .values(seedTrips)
+    .onConflictDoUpdate({
+      target: trips.slug,
+      set: {
+        name: sql`excluded.name`,
+        miles: sql`excluded.miles`,
+        durationHours: sql`excluded.duration_hours`,
+        moodTag: sql`excluded.mood_tag`,
+        description: sql`excluded.description`,
+        difficulty: sql`excluded.difficulty`,
+        bestSeason: sql`excluded.best_season`,
+        route: sql`excluded.route`,
+      },
+    });
 
   console.log("Seed complete.");
 }

@@ -12,14 +12,16 @@ import "leaflet/dist/leaflet.css";
 import { latLngBounds } from "leaflet";
 import type { LatLngExpression } from "leaflet";
 
-function FitBounds({ points }: { points: LatLngExpression[] }) {
+function FitBounds({ points, interactive }: { points: LatLngExpression[]; interactive: boolean }) {
   const map = useMap();
 
   useEffect(() => {
     if (points.length > 1) {
-      map.fitBounds(latLngBounds(points), { padding: [16, 16] });
+      map.fitBounds(latLngBounds(points), {
+        padding: interactive ? [28, 28] : [16, 16],
+      });
     }
-  }, [map, points]);
+  }, [map, points, interactive]);
 
   return null;
 }
@@ -27,9 +29,11 @@ function FitBounds({ points }: { points: LatLngExpression[] }) {
 export default function LeafletMap({
   points,
   color,
+  interactive = false,
 }: {
   points: LatLngExpression[];
   color: string;
+  interactive?: boolean;
 }) {
   const start = points[0];
   const end = points[points.length - 1];
@@ -43,12 +47,12 @@ export default function LeafletMap({
       center={start}
       zoom={8}
       className="h-full w-full"
-      zoomControl={false}
+      zoomControl={interactive}
       attributionControl
-      dragging={false}
-      scrollWheelZoom={false}
-      doubleClickZoom={false}
-      touchZoom={false}
+      dragging={interactive}
+      scrollWheelZoom={interactive}
+      doubleClickZoom={interactive}
+      touchZoom={interactive}
       boxZoom={false}
       keyboard={false}
     >
@@ -76,7 +80,7 @@ export default function LeafletMap({
         radius={5}
         pathOptions={{ color: "#161616", weight: 2, fillColor: "#161616", fillOpacity: 1 }}
       />
-      <FitBounds points={points} />
+      <FitBounds points={points} interactive={interactive} />
     </MapContainer>
   );
 }
