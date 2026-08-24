@@ -47,6 +47,40 @@ body {
   z-index: 0;
 }
 
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border-radius: 0;
+  font-family: var(--font-space-grotesk), sans-serif;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1.5 1.5l5.5 5.5 5.5-5.5' fill='none' stroke='%23161616' stroke-width='3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  padding-right: 2.4rem;
+}
+
+select:focus-visible {
+  outline: 3px solid var(--color-accent-pink);
+  outline-offset: 2px;
+}
+
+select option {
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-weight: 600;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .leaflet-control-attribution {
   font-size: 9px;
   background: rgb(255 255 255 / 0.85);
