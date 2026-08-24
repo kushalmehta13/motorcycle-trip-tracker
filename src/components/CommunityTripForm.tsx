@@ -5,6 +5,7 @@ import { useState } from "react";
 import {
   CONTINENTS,
   TRIP_CATEGORIES,
+  type LatLng,
   type NamedStop,
   type TripCategory,
 } from "@/db/schema";
@@ -46,10 +47,14 @@ export default function CommunityTripForm({
     difficulty: number;
     bestSeason: string | null;
     stops: NamedStop[];
+    route: LatLng[];
   };
 }) {
   const router = useRouter();
   const [stops, setStops] = useState<NamedStop[]>(initial?.stops ?? []);
+  const [routeOverride, setRouteOverride] = useState<LatLng[] | null>(
+    initial?.route ?? null,
+  );
   const [continent, setContinent] = useState(initial?.continent ?? "");
   const [country, setCountry] = useState(displayCase(initial?.country));
   const [stateProvince, setStateProvince] = useState(displayCase(initial?.stateProvince));
@@ -101,6 +106,7 @@ export default function CommunityTripForm({
       durationHours: parsedDuration,
       difficulty,
       stops,
+      route: routeOverride ?? undefined,
     };
 
     const result =
@@ -125,13 +131,28 @@ export default function CommunityTripForm({
         <span className={labelClass}>Stops & route *</span>
         <StopRouteEditor
           stops={stops}
-          onChange={setStops}
+          onChange={(nextStops) => {
+            setRouteOverride(null);
+            setStops(nextStops);
+          }}
           onGeoHint={(hint) => {
-            const clean = hint;
-            if (clean.continent) setContinent(clean.continent);
-            if (clean.country) setCountry(displayCase(clean.country));
-            if (clean.stateProvince) setStateProvince(displayCase(clean.stateProvince));
-            if (clean.region) setRegion(displayCase(clean.region));
+            if (hint.continent) setContinent(hint.continent);
+            if (hint.country) setCountry(displayCase(hint.country));
+            if (hint.stateProvince) setStateProvince(displayCase(hint.stateProvince));
+            if (hint.region) setRegion(displayCase(hint.region));
+          }}
+          overrideRoute={routeOverride}
+          onGpxImported={(importedStops, route, estimate) => {
+            setRouteOverride(route);
+            setStops(importedStops);
+            setMiles(String(estimate.miles));
+            setDuration(String(estimate.hours));
+          }}
+          onEstimate={(estimate) => {
+            if (estimate) {
+              setMiles(String(estimate.miles));
+              setDuration(String(estimate.hours));
+            }
           }}
         />
       </section>

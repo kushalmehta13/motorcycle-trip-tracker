@@ -72,6 +72,7 @@ export default async function EditTripPage({
             difficulty: trip.difficulty,
             bestSeason: trip.bestSeason,
             stops: trip.stops ?? [],
+            route: trip.route,
           }}
         />
       </main>

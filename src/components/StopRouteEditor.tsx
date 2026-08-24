@@ -2,7 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import type { NamedStop } from "@/db/schema";
+import type { LatLng, NamedStop } from "@/db/schema";
+import {
+  downsamplePoints,
+  nameStopsFromRoute,
+  parseGpx,
+  routeMiles,
+} from "@/lib/gpx";
 import { COUNTRY_TO_CONTINENT, type DerivedGeo } from "@/lib/routing";
 
 const RoutePreviewMap = dynamic(() => import("./RoutePreviewMap"), {
@@ -24,10 +30,15 @@ type SearchResult = {
   geo: DerivedGeo;
 };
 
-function buildResult(
-  properties: Record<string, string>,
-): { name: string; label: string; geo: DerivedGeo } {
-  const name = properties.name || properties.street || properties.city || "Unnamed place";
+export type RouteEstimate = { miles: number; hours: number };
+
+function buildResult(properties: Record<string, string>): {
+  name: string;
+  label: string;
+  geo: DerivedGeo;
+} {
+  const name =
+    properties.name || properties.street || properties.city || "Unnamed place";
   const parts = [
     properties.name,
     properties.city || properties.county,
@@ -40,8 +51,9 @@ function buildResult(
   if (properties.county) geo.region = properties.county.toLowerCase();
   else if (properties.city) geo.region = properties.city.toLowerCase();
   if (properties.country) geo.country = properties.country.toLowerCase();
-  if (COUNTRY_TO_CONTINENT[(properties.countrycode ?? "").toLowerCase()]) {
-    geo.continent = COUNTRY_TO_CONTINENT[(properties.countrycode ?? "").toLowerCase()];
+  const continentKey = (properties.countrycode ?? "").toLowerCase();
+  if (COUNTRY_TO_CONTINENT[continentKey]) {
+    geo.continent = COUNTRY_TO_CONTINENT[continentKey];
   }
 
   return { name, label: [name, ...parts].join(", "), geo };
@@ -51,19 +63,37 @@ export default function StopRouteEditor({
   stops,
   onChange,
   onGeoHint,
+  overrideRoute,
+  onGpxImported,
+  onEstimate,
 }: {
   stops: NamedStop[];
   onChange: (stops: NamedStop[]) => void;
   onGeoHint?: (geo: DerivedGeo) => void;
+  overrideRoute: LatLng[] | null;
+  onGpxImported: (
+    stops: NamedStop[],
+    route: LatLng[],
+    estimate: RouteEstimate,
+  ) => void;
+  onEstimate?: (estimate: RouteEstimate | null) => void;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [open, setOpen] = useState(false);
-  const [route, setRoute] = useState<[number, number][]>([]);
-  const [estimate, setEstimate] = useState<{ miles: number; hours: number } | null>(null);
+  const [osrmRoute, setOsrmRoute] = useState<[number, number][]>([]);
   const [routing, setRouting] = useState(false);
+  const [gpxError, setGpxError] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  const usingOverride =
+    Boolean(overrideRoute && overrideRoute.length >= 2);
+
+  const displayRoute: [number, number][] = usingOverride
+    ? (overrideRoute as [number, number][])
+    : osrmRoute;
 
   async function runSearch() {
     if (query.trim().length < 3) {
@@ -76,7 +106,10 @@ export default function StopRouteEditor({
         `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`,
       );
       const data = (await response.json()) as {
-        features?: { properties: Record<string, string>; geometry: { coordinates: [number, number] } }[];
+        features?: {
+          properties: Record<string, string>;
+          geometry: { coordinates: [number, number] };
+        }[];
       };
       setResults(
         (data.features ?? []).map((feature) => ({
@@ -111,13 +144,19 @@ export default function StopRouteEditor({
   }
 
   useEffect(() => {
+    if (usingOverride) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOsrmRoute([]);
+      return;
+    }
+
     let cancelled = false;
 
     async function fetchRoute() {
       abortRef.current?.abort();
       if (stops.length < 2) {
-        setRoute([]);
-        setEstimate(null);
+        setOsrmRoute([]);
+        onEstimate?.(null);
         return;
       }
       setRouting(true);
@@ -141,18 +180,18 @@ export default function StopRouteEditor({
         const first = data.routes?.[0];
         const coordinates = first?.geometry?.coordinates;
         if (!cancelled && first && coordinates && coordinates.length >= 2) {
-          setRoute(
+          setOsrmRoute(
             coordinates.map(([lng, lat]) => [lat, lng] as [number, number]),
           );
-          setEstimate({
+          onEstimate?.({
             miles: Math.round(first.distance / 1609.34),
             hours: Math.round((first.duration / 3600) * 10) / 10,
           });
         }
       } catch {
         if (!cancelled) {
-          setRoute(stops.map((stop) => [stop.lat, stop.lng]));
-          setEstimate(null);
+          setOsrmRoute(stops.map((stop) => [stop.lat, stop.lng]));
+          onEstimate?.(null);
         }
       } finally {
         if (!cancelled) setRouting(false);
@@ -163,7 +202,53 @@ export default function StopRouteEditor({
     return () => {
       cancelled = true;
     };
-  }, [stops]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stops, usingOverride]);
+
+  async function handleGpxFile(file: File) {
+    setGpxError(null);
+    setImporting(true);
+    try {
+      const xml = await file.text();
+      const parsed = parseGpx(xml);
+
+      const sourcePoints =
+        parsed.trackPoints.length >= 2
+          ? parsed.trackPoints
+          : parsed.waypoints.map(
+              (waypoint) => [waypoint.lat, waypoint.lng] as LatLng,
+            );
+
+      if (sourcePoints.length < 2) {
+        throw new Error("No track or waypoints found in that GPX.");
+      }
+
+      const route = downsamplePoints(sourcePoints);
+      let importedStops: NamedStop[];
+
+      if (parsed.waypoints.length >= 2) {
+        importedStops = parsed.waypoints.slice(0, 8);
+      } else {
+        importedStops = await nameStopsFromRoute(route);
+      }
+
+      const rawMiles = routeMiles(route as LatLng[]);
+      onGpxImported(
+        importedStops,
+        route as LatLng[],
+        {
+          miles: Math.max(1, rawMiles),
+          hours: Math.max(0.1, Math.round((rawMiles / 38) * 10) / 10),
+        },
+      );
+    } catch (error) {
+      setGpxError(
+        error instanceof Error ? error.message : "Couldn't read that GPX.",
+      );
+    } finally {
+      setImporting(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -227,39 +312,62 @@ export default function StopRouteEditor({
       )}
 
       <div className="h-72 border-[3px] border-ink sm:h-96">
-        <RoutePreviewMap route={route} stops={stops} />
+        <RoutePreviewMap route={displayRoute} stops={stops} />
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="text-[11px] font-bold tracking-widest uppercase opacity-60">
-          {stops.length < 2
-            ? "Add at least two stops to draw the route"
-            : routing
-              ? "Finding roads…"
-              : `${route.length} road points`}
-        </span>
-        {estimate && (
-          <>
-            <span className="border-2 border-ink bg-paper px-2 py-0.5 text-[11px] font-bold">
-              ≈ {estimate.miles} mi · {estimate.hours} h riding
-            </span>
-            <span className="text-[10px] font-medium opacity-50">
-              auto-filled below — tweak if you know better
-            </span>
-          </>
+      <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold tracking-widest uppercase opacity-70">
+        {usingOverride ? (
+          <span className="border-2 border-ink bg-accent-green px-2 py-0.5 text-paper">
+            Imported track · {displayRoute.length} pts
+          </span>
+        ) : (
+          <span>
+            {stops.length < 2
+              ? "Search stops or import a GPX to draw the route"
+              : routing
+                ? "Finding roads…"
+                : `${displayRoute.length} road points`}
+          </span>
         )}
-        {stops.length > 0 && (
+        {(stops.length > 0 || usingOverride) && (
           <button
             type="button"
-            onClick={() => onChange([])}
-            className="brutal-chip ml-auto cursor-pointer bg-white px-3 py-1 text-[11px] font-bold uppercase transition-transform duration-150 hover:-translate-y-0.5"
+            onClick={() => {
+              setOsrmRoute([]);
+              onChange([]);
+            }}
+            className="brutal-chip ml-auto cursor-pointer bg-white px-3 py-1 uppercase transition-transform duration-150 hover:-translate-y-0.5"
           >
             Clear all
           </button>
         )}
       </div>
 
-      <input type="hidden" data-stops-count={stops.length} />
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="cursor-pointer border-[3px] border-dashed border-ink bg-paper px-3 py-2 text-xs font-bold tracking-widest uppercase transition-transform duration-150 hover:-translate-y-0.5">
+          {importing ? "Parsing…" : "⤒ Import GPX"}
+          <input
+            type="file"
+            accept=".gpx,application/gpx+xml,text/xml,application/xml"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void handleGpxFile(file);
+              event.target.value = "";
+            }}
+          />
+        </label>
+        {gpxError && (
+          <span className="border-2 border-ink bg-accent-orange px-2 py-1 text-[11px] font-bold normal-case">
+            {gpxError}
+          </span>
+        )}
+        {!gpxError && (
+          <span className="text-[11px] font-medium normal-case opacity-50">
+            Recorded a ride with an app? Drop the file here.
+          </span>
+        )}
+      </div>
     </div>
   );
 }

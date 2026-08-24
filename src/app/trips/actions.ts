@@ -5,6 +5,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
 import type {
   Continent,
+  LatLng,
   NamedStop,
   SavedTripStatus,
   TripCategory,
@@ -39,6 +40,7 @@ type TripFormInput = {
   difficulty: number;
   bestSeason?: string;
   stops: NamedStop[];
+  route?: LatLng[];
 };
 
 function slugifyGeo(value: string): string {
@@ -64,6 +66,26 @@ function validateTripInput(input: TripFormInput): string | null {
   }
   if (!Array.isArray(input.stops) || input.stops.length < 2) {
     return "Add at least two stops to build a route.";
+  }
+  if (input.route !== undefined) {
+    if (!Array.isArray(input.route) || input.route.length < 2) {
+      return "That imported track looks empty.";
+    }
+    if (input.route.length > 800) {
+      return "That track is too long — try a trimmed GPX.";
+    }
+    for (const [lat, lng] of input.route) {
+      if (
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng) ||
+        lat < -90 ||
+        lat > 90 ||
+        lng < -180 ||
+        lng > 180
+      ) {
+        return "The imported track has invalid points.";
+      }
+    }
   }
   for (const stop of input.stops) {
     if (
@@ -114,7 +136,10 @@ export async function createTripAction(
   if (error) return { ok: false, error };
 
   const stops = cleanStops(input.stops);
-  const { route } = await routeFromStops(stops);
+  const { route } =
+    input.route && input.route.length >= 2
+      ? { route: input.route }
+      : await routeFromStops(stops);
 
   const continent = input.continent?.trim()
     ? (slugifyGeo(input.continent) as Continent)
@@ -179,7 +204,10 @@ export async function updateTripAction(
   }
 
   const stops = cleanStops(input.stops);
-  const { route } = await routeFromStops(stops);
+  const { route } =
+    input.route && input.route.length >= 2
+      ? { route: input.route }
+      : await routeFromStops(stops);
 
   let continent = input.continent?.trim()
     ? (slugifyGeo(input.continent) as Continent)
