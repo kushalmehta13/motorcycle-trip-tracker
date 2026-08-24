@@ -5,7 +5,10 @@ import { auth } from "@clerk/nextjs/server";
 import BikeArt from "@/components/BikeArt";
 import BikeCard from "@/components/BikeCard";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
-import { getBikes } from "@/lib/bikes";
+import {
+  getBikes,
+  resolvePhotoUrls,
+} from "@/lib/bikes";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +27,7 @@ export default async function GaragePage() {
   let error: string | null = null;
 
   try {
-    bikes = await getBikes(userId);
+    bikes = await resolvePhotoUrls(await getBikes(userId));
   } catch (err) {
     error =
       err instanceof Error ? err.message : "Something went wrong loading the garage.";

@@ -48,7 +48,7 @@ export default function NewBikeForm() {
       let imageUrl: string | null = null;
       if (photo) {
         const blob = await upload(photo.name, photo, {
-          access: "public",
+          access: "private",
           handleUploadUrl: "/api/blob-upload",
         });
         imageUrl = blob.url;

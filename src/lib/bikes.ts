@@ -1,4 +1,5 @@
 import { and, desc, eq } from "drizzle-orm";
+import { issueSignedToken, presignUrl } from "@vercel/blob";
 import { getDb } from "@/db";
 import { bikes, type Bike, type BikeType, type NewBike } from "@/db/schema";
 
@@ -49,4 +50,37 @@ export function bikeTypeLabel(type: BikeType): string {
     track: "Track",
   };
   return labels[type];
+}
+
+const PHOTO_URL_TTL_MS = 60 * 60 * 1000;
+
+export async function resolvePhotoUrls(rows: Bike[]): Promise<Bike[]> {
+  if (!rows.some((bike) => bike.imageUrl)) {
+    return rows;
+  }
+
+  try {
+    const signedToken = await issueSignedToken({
+      operations: ["get"],
+      validUntil: Date.now() + PHOTO_URL_TTL_MS,
+    });
+
+    return await Promise.all(
+      rows.map(async (bike) => {
+        if (!bike.imageUrl) return bike;
+        const { presignedUrl } = await presignUrl(signedToken, {
+          operation: "get",
+          pathname: bike.imageUrl,
+          access: "private",
+        });
+        return { ...bike, imageUrl: presignedUrl };
+      }),
+    );
+  } catch (err) {
+    console.error(
+      "Failed to presign photo URLs, falling back to raw URLs:",
+      err,
+    );
+    return rows;
+  }
 }
