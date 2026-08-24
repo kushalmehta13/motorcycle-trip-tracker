@@ -22,12 +22,12 @@ export type GeoBucket = { value: string; count: number };
 export type TripSort = "popular" | "newest" | "rating" | "miles";
 
 const popularityExpr = sql<number>`(
-  (select count(*) from saved_trips s where s.trip_id = ${trips.id})
-  + (select count(*) from reviews r where r.trip_id = ${trips.id})
+  (select count(*) from saved_trips s where s.trip_id = "trips"."id")
+  + (select count(*) from reviews r where r.trip_id = "trips"."id")
 )::int`;
 
-const avgExpr = sql<number | null>`(select avg(r.rating)::float8 from reviews r where r.trip_id = ${trips.id})`;
-const reviewCountExpr = sql<number>`(select count(*)::int from reviews r where r.trip_id = ${trips.id})`;
+const avgExpr = sql<number | null>`(select avg(r.rating)::float8 from reviews r where r.trip_id = "trips"."id")`;
+const reviewCountExpr = sql<number>`(select count(*)::int from reviews r where r.trip_id = "trips"."id")`;
 
 const tripColumns = {
   id: trips.id,
@@ -57,7 +57,7 @@ function baseQuery() {
       ...tripColumns,
       avgRating: avgExpr,
       reviewCount: reviewCountExpr,
-      saves: sql<number>`(select count(*)::int from saved_trips s where s.trip_id = ${trips.id})`,
+      saves: sql<number>`(select count(*)::int from saved_trips s where s.trip_id = "trips"."id")`,
       popularity: popularityExpr,
     })
     .from(trips)
