@@ -1,5 +1,5 @@
-import Link from "next/link";
 import TripCard from "@/components/TripCard";
+import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { getTrips } from "@/lib/trips";
 
 export const dynamic = "force-dynamic";
@@ -50,23 +50,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 border-b-4 border-ink bg-paper/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="brutal-chip inline-block -rotate-2 bg-accent-yellow px-2 py-1 font-display text-base leading-none">
-              MOTO
-            </span>
-            <span className="font-display text-lg tracking-tight">TRACKER</span>
-          </Link>
-          <nav className="hidden items-center gap-6 text-xs font-bold tracking-[0.18em] uppercase sm:flex">
-            <span aria-current="page" className="border-b-[3px] border-accent-pink pb-0.5">
-              Catalog
-            </span>
-            <span className="opacity-40">Garage</span>
-            <span className="opacity-40">Log</span>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader active="catalog" />
 
       <main className="mx-auto w-full max-w-6xl grow px-4 pt-12 pb-20 sm:px-6">
         <section className="mb-14">
@@ -126,12 +110,7 @@ export default async function HomePage() {
         </section>
       </main>
 
-      <footer className="border-t-4 border-ink bg-ink text-paper">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-6 text-[11px] font-bold tracking-[0.18em] uppercase sm:px-6">
-          <span>MOTO.TRACKER © 2026</span>
-          <span className="opacity-70">Built for the long way home</span>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

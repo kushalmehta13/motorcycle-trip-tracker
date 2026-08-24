@@ -28,3 +28,33 @@ export const trips = pgTable("trips", {
 
 export type Trip = typeof trips.$inferSelect;
 export type NewTrip = typeof trips.$inferInsert;
+
+export const BIKE_TYPES = [
+  "sport",
+  "cruiser",
+  "touring",
+  "adventure",
+  "standard",
+  "scooter",
+  "track",
+] as const;
+
+export type BikeType = (typeof BIKE_TYPES)[number];
+
+export const bikes = pgTable("bikes", {
+  id: serial("id").primaryKey(),
+  nickname: text("nickname").notNull(),
+  make: text("make").notNull(),
+  model: text("model").notNull(),
+  year: integer("year").notNull(),
+  type: text("type").$type<BikeType>().notNull(),
+  mileage: integer("mileage").notNull().default(0),
+  imageUrl: text("image_url"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export type Bike = typeof bikes.$inferSelect;
+export type NewBike = typeof bikes.$inferInsert;
