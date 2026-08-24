@@ -2,18 +2,40 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { TRIP_CATEGORIES, type TripCategory } from "@/db/schema";
-import { createTripAction } from "@/app/trips/actions";
-import RoutePlotter from "./RoutePlotter";
+import { TRIP_CATEGORIES, type NamedStop, type TripCategory } from "@/db/schema";
+import { createTripAction, updateTripAction } from "@/app/trips/actions";
+import StopRouteEditor from "./StopRouteEditor";
 
 const inputClass =
   "w-full border-[3px] border-ink bg-white px-3 py-2.5 text-sm font-medium placeholder:text-ink/40 focus:outline-none focus-visible:outline-none focus:border-accent-pink";
 const labelClass =
   "block text-[11px] font-bold tracking-[0.18em] uppercase mb-1.5";
 
-export default function NewTripForm() {
+export default function CommunityTripForm({
+  mode,
+  tripId,
+  initial,
+}: {
+  mode: "create" | "edit";
+  tripId?: number;
+  initial?: {
+    name: string;
+    category: TripCategory;
+    moodTag: string;
+    description: string;
+    miles: number;
+    durationHours: number;
+    difficulty: number;
+    bestSeason: string | null;
+    stops: NamedStop[];
+  };
+}) {
   const router = useRouter();
-  const [points, setPoints] = useState<[number, number][]>([]);
+  const [stops, setStops] = useState<NamedStop[]>(initial?.stops ?? []);
+  const [miles, setMiles] = useState(initial ? String(initial.miles) : "");
+  const [duration, setDuration] = useState(
+    initial ? String(initial.durationHours) : "",
+  );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -22,35 +44,40 @@ export default function NewTripForm() {
     setError(null);
 
     const form = new FormData(event.currentTarget);
-    const miles = Number(form.get("miles"));
-    const durationHours = Number(form.get("durationHours"));
+    const parsedMiles = Number(miles);
+    const parsedDuration = Number(duration);
     const difficulty = Number(form.get("difficulty"));
 
-    if (!String(form.get("name")).trim()) {
-      setError("Give the ride a name.");
+    if (stops.length < 2) {
+      setError("Add at least two stops to build a route.");
       return;
     }
-    if (!Number.isFinite(miles) || miles <= 0) {
-      setError("Enter the mileage (check the estimate above).");
+    if (!Number.isFinite(parsedMiles) || parsedMiles <= 0) {
+      setError("Enter the mileage.");
       return;
     }
-    if (!Number.isFinite(durationHours) || durationHours <= 0) {
+    if (!Number.isFinite(parsedDuration) || parsedDuration <= 0) {
       setError("Enter an estimated ride time in hours.");
       return;
     }
 
     setBusy(true);
-    const result = await createTripAction({
-      name: String(form.get("name")),
+    const payload = {
+      name: String(form.get("name") ?? ""),
       category: String(form.get("category")) as TripCategory,
       moodTag: String(form.get("moodTag") ?? ""),
       description: String(form.get("description") ?? ""),
       bestSeason: String(form.get("bestSeason") ?? ""),
-      miles,
-      durationHours,
+      miles: parsedMiles,
+      durationHours: parsedDuration,
       difficulty,
-      route: points,
-    });
+      stops,
+    };
+
+    const result =
+      mode === "edit" && tripId
+        ? await updateTripAction(tripId, payload)
+        : await createTripAction(payload);
 
     if (!result.ok) {
       setError(result.error);
@@ -64,11 +91,8 @@ export default function NewTripForm() {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <section>
-        <span className={labelClass}>Route *</span>
-        <RoutePlotter points={points} onPointsChange={setPoints} />
-        <p className="mt-2 text-[11px] font-medium opacity-60">
-          Click to trace the road start → finish. Every click adds a waypoint.
-        </p>
+        <span className={labelClass}>Stops & route *</span>
+        <StopRouteEditor stops={stops} onChange={setStops} />
       </section>
 
       <section className="brutal-card grid gap-5 bg-white p-5 sm:grid-cols-2 sm:p-7">
@@ -76,14 +100,26 @@ export default function NewTripForm() {
           <label htmlFor="name" className={labelClass}>
             Ride name *
           </label>
-          <input id="name" name="name" className={inputClass} placeholder="Cherohala Skyway Run" maxLength={60} />
+          <input
+            id="name"
+            name="name"
+            className={inputClass}
+            placeholder="Cherohala Skyway Run"
+            maxLength={60}
+            defaultValue={initial?.name ?? ""}
+          />
         </div>
 
         <div>
           <label htmlFor="category" className={labelClass}>
             Category
           </label>
-          <select id="category" name="category" className={inputClass} defaultValue="mixed">
+          <select
+            id="category"
+            name="category"
+            className={inputClass}
+            defaultValue={initial?.category ?? "mixed"}
+          >
             {TRIP_CATEGORIES.map((category) => (
               <option key={category} value={category}>
                 {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -96,7 +132,14 @@ export default function NewTripForm() {
           <label htmlFor="moodTag" className={labelClass}>
             Mood tag *
           </label>
-          <input id="moodTag" name="moodTag" className={inputClass} placeholder="Twisty & Technical" maxLength={30} />
+          <input
+            id="moodTag"
+            name="moodTag"
+            className={inputClass}
+            placeholder="Twisty & Technical"
+            maxLength={30}
+            defaultValue={initial?.moodTag ?? ""}
+          />
         </div>
 
         <div className="sm:col-span-2">
@@ -110,6 +153,7 @@ export default function NewTripForm() {
             maxLength={400}
             className={inputClass}
             placeholder="What should riders expect? Road surface, traffic, fuel stops, hazards…"
+            defaultValue={initial?.description ?? ""}
           />
         </div>
 
@@ -117,21 +161,48 @@ export default function NewTripForm() {
           <label htmlFor="miles" className={labelClass}>
             Miles *
           </label>
-          <input id="miles" name="miles" type="number" min={1} max={5000} step="0.1" className={inputClass} placeholder="52" />
+          <input
+            id="miles"
+            name="miles"
+            type="number"
+            min={1}
+            max={5000}
+            step="0.1"
+            className={inputClass}
+            value={miles}
+            onChange={(event) => setMiles(event.target.value)}
+            placeholder="52"
+          />
         </div>
 
         <div>
           <label htmlFor="durationHours" className={labelClass}>
             Ride time (hours) *
           </label>
-          <input id="durationHours" name="durationHours" type="number" min={0.1} max={100} step="0.1" className={inputClass} placeholder="1.8" />
+          <input
+            id="durationHours"
+            name="durationHours"
+            type="number"
+            min={0.1}
+            max={100}
+            step="0.1"
+            className={inputClass}
+            value={duration}
+            onChange={(event) => setDuration(event.target.value)}
+            placeholder="1.8"
+          />
         </div>
 
         <div>
           <label htmlFor="difficulty" className={labelClass}>
             Difficulty
           </label>
-          <select id="difficulty" name="difficulty" className={inputClass} defaultValue="3">
+          <select
+            id="difficulty"
+            name="difficulty"
+            className={inputClass}
+            defaultValue={String(initial?.difficulty ?? 3)}
+          >
             {[1, 2, 3, 4, 5].map((level) => (
               <option key={level} value={level}>
                 {level} —{" "}
@@ -145,7 +216,14 @@ export default function NewTripForm() {
           <label htmlFor="bestSeason" className={labelClass}>
             Best season
           </label>
-          <input id="bestSeason" name="bestSeason" className={inputClass} placeholder="Apr – Oct" maxLength={30} />
+          <input
+            id="bestSeason"
+            name="bestSeason"
+            className={inputClass}
+            placeholder="Apr – Oct"
+            maxLength={30}
+            defaultValue={initial?.bestSeason ?? ""}
+          />
         </div>
       </section>
 
@@ -160,7 +238,11 @@ export default function NewTripForm() {
         disabled={busy}
         className="brutal-chip w-full cursor-pointer bg-accent-yellow px-4 py-3.5 font-display text-sm tracking-widest uppercase transition-[transform,box-shadow] duration-150 ease-out hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--color-ink)] active:translate-x-0.5 active:translate-y-0.5 disabled:cursor-wait disabled:opacity-70"
       >
-        {busy ? "Publishing…" : "Share it with the community"}
+        {busy
+          ? "Saving…"
+          : mode === "edit"
+            ? "Save changes"
+            : "Share it with the community"}
       </button>
     </form>
   );

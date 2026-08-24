@@ -60,7 +60,18 @@ export default function TripDetail({
 
       <h2 className="font-display px-5 pt-4 text-2xl leading-tight uppercase sm:px-7 sm:text-3xl">
         {trip.name}
+        {trip.outdatedAt && (
+          <span className="brutal-chip ml-3 inline-block rotate-1 bg-accent-orange px-2 py-1 align-middle text-[10px] tracking-widest">
+            Outdated report
+          </span>
+        )}
       </h2>
+
+      {trip.stops && trip.stops.length > 0 && (
+        <p className="px-5 pt-3 text-xs font-bold tracking-wide uppercase opacity-70 sm:px-7">
+          {trip.stops.map((stop) => stop.name).join(" → ")}
+        </p>
+      )}
 
       <div className="mt-4 h-64 border-y-[3px] border-ink sm:h-80">
         <RouteMap points={trip.route} color={accent} interactive />

@@ -7,7 +7,11 @@ import BikeCard from "@/components/BikeCard";
 import RemoveSavedButton from "@/components/RemoveSavedButton";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { getBikes, resolvePhotoUrls } from "@/lib/bikes";
-import { getSavedTrips } from "@/lib/trips";
+import {
+  accentForTag,
+  getSavedTrips,
+  getTripByCreator,
+} from "@/lib/trips";
 
 export const dynamic = "force-dynamic";
 
@@ -24,11 +28,13 @@ export default async function GaragePage() {
 
   let bikes: Awaited<ReturnType<typeof getBikes>> = [];
   let saved: Awaited<ReturnType<typeof getSavedTrips>> = [];
+  let contributions: Awaited<ReturnType<typeof getTripByCreator>> = [];
   let error: string | null = null;
 
   try {
     bikes = await resolvePhotoUrls(await getBikes(userId));
     saved = await getSavedTrips(userId);
+    contributions = await getTripByCreator(userId);
   } catch (err) {
     error =
       err instanceof Error ? err.message : "Something went wrong loading the garage.";
@@ -87,6 +93,69 @@ export default async function GaragePage() {
           {bikes.map((bike) => (
             <BikeCard key={bike.id} bike={bike} />
           ))}
+        </section>
+
+        <section aria-label="Your contributions" className="mt-16">
+          <h2 className="font-display text-2xl uppercase sm:text-3xl">
+            Your{" "}
+            <span className="brutal-chip inline-block -rotate-1 bg-accent-yellow px-3 py-0.5">
+              rides
+            </span>
+          </h2>
+          <p className="mt-2 text-sm font-medium opacity-70">
+            Rides you shared with the community. Roads change — keep them honest.
+          </p>
+
+          {!error && contributions.length === 0 ? (
+            <div className="brutal-card mt-6 border-dashed bg-white p-6 text-sm font-medium opacity-70">
+              You haven&apos;t shared any rides yet.{" "}
+              <Link
+                href="/add-ride"
+                className="underline decoration-2 underline-offset-2"
+              >
+                Add one
+              </Link>{" "}
+              and put your roads on the map.
+            </div>
+          ) : (
+            <ul className="mt-6 grid gap-4 lg:grid-cols-2">
+              {contributions.map((trip) => (
+                <li key={trip.id} className="brutal-card flex items-center gap-3 bg-white p-4">
+                  <span
+                    className="inline-block h-8 w-2 shrink-0 border-2 border-ink"
+                    style={{ backgroundColor: accentForTag(trip.moodTag) }}
+                    aria-hidden="true"
+                  />
+                  <div className="grow min-w-0">
+                    <Link
+                      href={`/trips/${trip.slug}`}
+                      className="block truncate text-sm font-bold hover:underline"
+                    >
+                      {trip.name}
+                    </Link>
+                    <span className="text-[10px] font-bold tracking-widest uppercase opacity-50">
+                      {Math.round(trip.miles)} mi ·{" "}
+                      {new Date(trip.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                  {trip.outdatedAt && (
+                    <span className="shrink-0 border-2 border-ink bg-accent-orange px-1.5 py-0.5 text-[9px] font-bold tracking-widest uppercase">
+                      Outdated
+                    </span>
+                  )}
+                  <Link
+                    href={`/trips/${trip.slug}/edit`}
+                    className="brutal-chip shrink-0 cursor-pointer bg-accent-cyan px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase transition-transform duration-150 hover:-translate-y-0.5"
+                  >
+                    Edit
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section aria-label="Saved trips" className="mt-16">

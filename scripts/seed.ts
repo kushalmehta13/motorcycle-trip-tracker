@@ -9,6 +9,11 @@ import { trips, type NewTrip } from "../src/db/schema";
 const seedTrips: NewTrip[] = [
   {
     slug: "tail-of-the-dragon",
+    stops: [
+      { name: "Deals Gap, NC", lat: 35.4686, lng: -83.9286 },
+      { name: "Tapoco, NC", lat: 35.4838, lng: -83.8778 },
+      { name: "Chilhowee Lake, TN", lat: 35.5165, lng: -83.8455 },
+    ],
     category: "forest",
     name: "Tail of the Dragon",
     miles: 11,
@@ -35,6 +40,12 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "big-sur-coast-run",
+    stops: [
+      { name: "Carmel-by-the-Sea, CA", lat: 36.5552, lng: -121.9233 },
+      { name: "Bixby Creek Bridge", lat: 36.3716, lng: -121.9017 },
+      { name: "Big Sur, CA", lat: 36.2704, lng: -121.8081 },
+      { name: "Lucia, CA", lat: 36.0156, lng: -121.6067 },
+    ],
     category: "coastal",
     name: "Big Sur Coast Run",
     miles: 62,
@@ -67,6 +78,11 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "blue-ridge-parkway-south",
+    stops: [
+      { name: "Asheville, NC", lat: 35.568, lng: -82.555 },
+      { name: "Mount Pisgah, NC", lat: 35.4802, lng: -82.6238 },
+      { name: "Brevard, NC", lat: 35.3002, lng: -82.8201 },
+    ],
     category: "mountain",
     name: "Blue Ridge Parkway South",
     miles: 74,
@@ -95,6 +111,12 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "angeles-crest-highway",
+    stops: [
+      { name: "La Cañada-Flintridge, CA", lat: 34.208, lng: -118.2 },
+      { name: "Red Box Junction", lat: 34.298, lng: -118.05 },
+      { name: "Newcomb's Ranch", lat: 34.339, lng: -117.86 },
+      { name: "Wrightwood, CA", lat: 34.318, lng: -117.74 },
+    ],
     category: "mountain",
     name: "Angeles Crest Highway",
     miles: 40,
@@ -121,6 +143,12 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "needles-highway-loop",
+    stops: [
+      { name: "Keystone, SD", lat: 43.878, lng: -103.5 },
+      { name: "Needles Eye Tunnel", lat: 43.9312, lng: -103.5648 },
+      { name: "Sylvan Lake, SD", lat: 43.9012, lng: -103.6021 },
+      { name: "Keystone, SD", lat: 43.8765, lng: -103.5189 },
+    ],
     category: "canyon",
     name: "Needles Highway Loop",
     miles: 32,
@@ -148,6 +176,10 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "passo-dello-stelvio",
+    stops: [
+      { name: "Prato allo Stelvio, Italy", lat: 46.618, lng: 10.595 },
+      { name: "Passo dello Stelvio", lat: 46.5285, lng: 10.4525 },
+    ],
     category: "mountain",
     name: "Passo dello Stelvio",
     miles: 15,
@@ -189,6 +221,7 @@ async function main() {
         description: sql`excluded.description`,
         difficulty: sql`excluded.difficulty`,
         bestSeason: sql`excluded.best_season`,
+        stops: sql`excluded.stops`,
         route: sql`excluded.route`,
       },
     });

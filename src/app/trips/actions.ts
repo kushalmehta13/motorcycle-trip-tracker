@@ -3,19 +3,23 @@
 import { revalidatePath } from "next/cache";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
-import type { LatLng } from "@/db/schema";
+import type { NamedStop, SavedTripStatus, TripCategory } from "@/db/schema";
 import {
   SAVED_TRIP_STATUSES,
   TRIP_CATEGORIES,
   savedTrips,
   reviews,
-  type SavedTripStatus,
-  type TripCategory,
+  trips,
 } from "@/db/schema";
 import { getDb } from "@/db";
 import { createTrip } from "@/lib/create-trip";
+import { routeFromStops } from "@/lib/routing";
 
-type CreateTripInput = {
+export type ActionResult<T = undefined> =
+  | ({ ok: true } & (T extends undefined ? object : { data: T }))
+  | { ok: false; error: string };
+
+type TripFormInput = {
   name: string;
   category: TripCategory;
   miles: number;
@@ -24,75 +28,162 @@ type CreateTripInput = {
   description: string;
   difficulty: number;
   bestSeason?: string;
-  route: LatLng[];
+  stops: NamedStop[];
 };
 
-export type ActionResult<T = undefined> =
-  | ({ ok: true } & (T extends undefined ? object : { data: T }))
-  | { ok: false; error: string };
-
-export async function createTripAction(
-  input: CreateTripInput,
-): Promise<ActionResult<{ slug: string }>> {
-  const { userId } = await auth();
-  if (!userId) {
-    return { ok: false, error: "Sign in to share a ride." };
-  }
-
-  const name = input.name.trim();
-  const moodTag = input.moodTag.trim();
-  const description = input.description.trim();
-
-  if (!name || !moodTag || !description) {
-    return { ok: false, error: "Name, mood tag, and description are required." };
+function validateTripInput(input: TripFormInput): string | null {
+  if (!input.name.trim() || !input.moodTag.trim() || !input.description.trim()) {
+    return "Name, mood tag, and description are required.";
   }
   if (!TRIP_CATEGORIES.includes(input.category)) {
-    return { ok: false, error: "Pick a valid category." };
+    return "Pick a valid category.";
   }
-  if (!Array.isArray(input.route) || input.route.length < 2) {
-    return { ok: false, error: "Plot at least two points on the map." };
+  if (!Array.isArray(input.stops) || input.stops.length < 2) {
+    return "Add at least two stops to build a route.";
   }
-  for (const [lat, lng] of input.route) {
+  for (const stop of input.stops) {
     if (
-      !Number.isFinite(lat) ||
-      !Number.isFinite(lng) ||
-      lat < -90 ||
-      lat > 90 ||
-      lng < -180 ||
-      lng > 180
+      !stop.name?.trim() ||
+      !Number.isFinite(stop.lat) ||
+      !Number.isFinite(stop.lng) ||
+      stop.lat < -90 ||
+      stop.lat > 90 ||
+      stop.lng < -180 ||
+      stop.lng > 180
     ) {
-      return { ok: false, error: "Route points look invalid." };
+      return "One of the stops looks invalid — remove it and try again.";
     }
   }
   if (!Number.isFinite(input.miles) || input.miles <= 0 || input.miles > 5000) {
-    return { ok: false, error: "Mileage looks off." };
+    return "Mileage looks off.";
   }
   if (
     !Number.isFinite(input.durationHours) ||
     input.durationHours <= 0 ||
     input.durationHours > 100
   ) {
-    return { ok: false, error: "Ride time looks off." };
+    return "Ride time looks off.";
   }
   if (!Number.isInteger(input.difficulty) || input.difficulty < 1 || input.difficulty > 5) {
-    return { ok: false, error: "Difficulty must be 1–5." };
+    return "Difficulty must be 1–5.";
+  }
+  return null;
+}
+
+function cleanStops(stops: NamedStop[]): NamedStop[] {
+  return stops.map((stop) => ({
+    name: stop.name.trim().slice(0, 80),
+    lat: Math.round(stop.lat * 10000) / 10000,
+    lng: Math.round(stop.lng * 10000) / 10000,
+  }));
+}
+
+export async function createTripAction(
+  input: TripFormInput,
+): Promise<ActionResult<{ slug: string }>> {
+  const { userId } = await auth();
+  if (!userId) {
+    return { ok: false, error: "Sign in to share a ride." };
   }
 
+  const error = validateTripInput(input);
+  if (error) return { ok: false, error };
+
+  const stops = cleanStops(input.stops);
+  const { route } = await routeFromStops(stops);
+
   const trip = await createTrip({
-    userId,
-    name,
-    category: input.category,
-    miles: Math.round(input.miles * 10) / 10,
-    durationHours: Math.round(input.durationHours * 10) / 10,
-    moodTag,
-    description,
-    difficulty: input.difficulty,
-    bestSeason: input.bestSeason?.trim() || null,
-    route: input.route,
-  });
+      userId,
+      name: input.name.trim(),
+      category: input.category,
+      miles: Math.round(input.miles * 10) / 10,
+      durationHours: Math.round(input.durationHours * 10) / 10,
+      moodTag: input.moodTag.trim(),
+      description: input.description.trim(),
+      difficulty: input.difficulty,
+      bestSeason: input.bestSeason?.trim() || null,
+      stops,
+      route,
+    });
 
   revalidatePath("/");
   return { ok: true, data: { slug: trip.slug } };
+}
+
+export async function updateTripAction(
+  tripId: number,
+  input: TripFormInput,
+): Promise<ActionResult<{ slug: string }>> {
+  const { userId } = await auth();
+  if (!userId) {
+    return { ok: false, error: "Sign in first." };
+  }
+
+  const error = validateTripInput(input);
+  if (error) return { ok: false, error };
+
+  const db = getDb();
+  const [existing] = await db
+    .select({ id: trips.id, slug: trips.slug, userId: trips.userId })
+    .from(trips)
+    .where(and(eq(trips.id, tripId), eq(trips.userId, userId)))
+    .limit(1);
+
+  if (!existing) {
+    return { ok: false, error: "You can only edit rides you shared." };
+  }
+
+  const stops = cleanStops(input.stops);
+  const { route } = await routeFromStops(stops);
+
+  await db
+    .update(trips)
+    .set({
+      name: input.name.trim(),
+      category: input.category,
+      miles: Math.round(input.miles * 10) / 10,
+      durationHours: Math.round(input.durationHours * 10) / 10,
+      moodTag: input.moodTag.trim(),
+      description: input.description.trim(),
+      difficulty: input.difficulty,
+      bestSeason: input.bestSeason?.trim() || null,
+      stops,
+      route,
+    })
+    .where(eq(trips.id, tripId));
+
+  revalidatePath("/");
+  revalidatePath(`/trips/${existing.slug}`);
+  return { ok: true, data: { slug: existing.slug } };
+}
+
+export async function toggleOutdatedAction(
+  tripId: number,
+): Promise<ActionResult<{ outdated: boolean }>> {
+  const { userId } = await auth();
+  if (!userId) {
+    return { ok: false, error: "Sign in first." };
+  }
+
+  const db = getDb();
+  const [existing] = await db
+    .select({ id: trips.id, outdatedAt: trips.outdatedAt })
+    .from(trips)
+    .where(and(eq(trips.id, tripId), eq(trips.userId, userId)))
+    .limit(1);
+
+  if (!existing) {
+    return { ok: false, error: "You can only update rides you shared." };
+  }
+
+  const outdated = existing.outdatedAt === null;
+  await db
+    .update(trips)
+    .set({ outdatedAt: outdated ? new Date() : null })
+    .where(eq(trips.id, tripId));
+
+  revalidatePath("/");
+  return { ok: true, data: { outdated } };
 }
 
 export async function toggleSavedTripAction(

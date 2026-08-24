@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import NewTripForm from "@/components/NewTripForm";
+import CommunityTripForm from "@/components/CommunityTripForm";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 
 export const dynamic = "force-dynamic";
@@ -36,10 +36,10 @@ export default async function AddRidePage() {
           </span>
         </h1>
         <p className="mb-8 max-w-md text-sm font-medium leading-relaxed opacity-80">
-          Plot the road, tell it like it is, and put it on the community map.
+          Search stops, let the roads draw themselves, and tell it like it is.
         </p>
 
-        <NewTripForm />
+        <CommunityTripForm mode="create" />
       </main>
 
       <SiteFooter />

@@ -28,6 +28,11 @@ export default function TripCard({ trip }: { trip: TripWithRating }) {
             <span className="text-[10px] font-bold">{Number(trip.avgRating ?? 0).toFixed(1)}</span>
           </span>
         )}
+        {trip.outdatedAt && (
+          <span className="brutal-chip absolute right-2 top-2 z-10 bg-accent-orange px-2 py-1 text-[10px] font-bold tracking-widest uppercase">
+            May be outdated
+          </span>
+        )}
       </div>
 
       <div className="flex grow flex-col gap-3 p-5">

@@ -27,6 +27,8 @@ const tripColumns = {
   difficulty: trips.difficulty,
   bestSeason: trips.bestSeason,
   route: trips.route,
+  stops: trips.stops,
+  outdatedAt: trips.outdatedAt,
   createdAt: trips.createdAt,
 };
 
@@ -120,6 +122,20 @@ export async function getSavedTrips(userId: string): Promise<
     .innerJoin(trips, eq(savedTrips.tripId, trips.id))
     .where(eq(savedTrips.userId, userId))
     .orderBy(desc(savedTrips.createdAt));
+}
+
+export async function getTripByCreator(
+  userId: string,
+): Promise<TripWithRating[]> {
+  return baseQuery()
+    .where(eq(trips.userId, userId))
+    .orderBy(desc(trips.createdAt));
+}
+
+export async function getTripById(id: number): Promise<Trip | undefined> {
+  const db = getDb();
+  const [trip] = await db.select().from(trips).where(eq(trips.id, id)).limit(1);
+  return trip;
 }
 
 export function accentForTag(tag: string): string {

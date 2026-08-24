@@ -22,6 +22,12 @@ export const TRIP_CATEGORIES = [
 
 export type TripCategory = (typeof TRIP_CATEGORIES)[number];
 
+export type NamedStop = {
+  name: string;
+  lat: number;
+  lng: number;
+};
+
 export const trips = pgTable("trips", {
   id: serial("id").primaryKey(),
   slug: text("slug").notNull().unique(),
@@ -38,6 +44,8 @@ export const trips = pgTable("trips", {
   difficulty: integer("difficulty").notNull().default(3),
   bestSeason: text("best_season"),
   route: jsonb("route").$type<LatLng[]>().notNull(),
+  stops: jsonb("stops").$type<NamedStop[]>(),
+  outdatedAt: timestamp("outdated_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
