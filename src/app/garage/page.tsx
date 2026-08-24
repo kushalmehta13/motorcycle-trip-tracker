@@ -59,7 +59,7 @@ export default async function GaragePage() {
         {!error && bikes.length === 0 && (
           <div className="brutal-card flex flex-col items-center gap-2 border-dashed bg-white px-6 py-14 text-center">
             <div className="h-44 w-full max-w-sm opacity-90">
-              <BikeArt type="standard" accent="#FFD02F" seed="empty-garage" />
+              <BikeArt type="standard" accent="#FFD02F" />
             </div>
             <h2 className="font-display mt-3 text-xl uppercase">No bikes yet</h2>
             <p className="max-w-xs text-sm font-medium opacity-70">

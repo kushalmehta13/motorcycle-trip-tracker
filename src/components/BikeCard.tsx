@@ -17,7 +17,7 @@ export default function BikeCard({ bike }: { bike: Bike }) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <BikeArt type={bike.type} accent={accent} seed={bike.id} />
+          <BikeArt type={bike.type} accent={accent} />
         )}
       </div>
 
