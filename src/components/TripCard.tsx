@@ -1,6 +1,7 @@
 import Link from "next/link";
-import type { Trip } from "@/db/schema";
-import { accentForTag } from "@/lib/trips";
+import { categoryLabel } from "@/components/CategoryFilter";
+import { accentForTag, type TripWithRating } from "@/lib/trips";
+import RatingBlocks from "./RatingBlocks";
 import RouteMap from "./RouteMap";
 
 function formatDuration(hours: number): string {
@@ -11,7 +12,7 @@ function formatDuration(hours: number): string {
   return `${whole}H ${mins}M`;
 }
 
-export default function TripCard({ trip }: { trip: Trip }) {
+export default function TripCard({ trip }: { trip: TripWithRating }) {
   const accent = accentForTag(trip.moodTag);
 
   return (
@@ -19,17 +20,28 @@ export default function TripCard({ trip }: { trip: Trip }) {
       href={`/trips/${trip.slug}`}
       className="brutal-card flex flex-col bg-white transition-[transform,box-shadow] duration-150 ease-out hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0_0_var(--color-ink)]"
     >
-      <div className="h-44 shrink-0 overflow-hidden border-b-[3px] border-ink bg-paper">
+      <div className="relative h-44 shrink-0 overflow-hidden border-b-[3px] border-ink bg-paper">
         <RouteMap points={trip.route} color={accent} />
+        {trip.reviewCount > 0 && (
+          <span className="brutal-chip absolute left-2 top-2 z-10 flex items-center gap-1.5 bg-white px-1.5 py-1">
+            <RatingBlocks value={trip.avgRating ?? 0} size="sm" />
+            <span className="text-[10px] font-bold">{trip.avgRating?.toFixed(1)}</span>
+          </span>
+        )}
       </div>
 
       <div className="flex grow flex-col gap-3 p-5">
-        <span
-          className="brutal-chip -rotate-1 self-start px-2 py-1 text-[11px] font-bold tracking-widest uppercase"
-          style={{ backgroundColor: accent }}
-        >
-          {trip.moodTag}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className="brutal-chip -rotate-1 px-2 py-1 text-[11px] font-bold tracking-widest uppercase"
+            style={{ backgroundColor: accent }}
+          >
+            {trip.moodTag}
+          </span>
+          <span className="rotate-1 border-2 border-ink bg-paper px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase opacity-80">
+            {categoryLabel(trip.category)}
+          </span>
+        </div>
 
         <h2 className="font-display text-xl leading-tight uppercase">
           {trip.name}

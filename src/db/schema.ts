@@ -6,14 +6,31 @@ import {
   timestamp,
   jsonb,
   integer,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 export type LatLng = [number, number];
 
+export const TRIP_CATEGORIES = [
+  "mountain",
+  "coastal",
+  "desert",
+  "forest",
+  "canyon",
+  "mixed",
+] as const;
+
+export type TripCategory = (typeof TRIP_CATEGORIES)[number];
+
 export const trips = pgTable("trips", {
   id: serial("id").primaryKey(),
   slug: text("slug").notNull().unique(),
+  userId: text("user_id"),
   name: text("name").notNull(),
+  category: text("category")
+    .$type<TripCategory>()
+    .notNull()
+    .default("mixed"),
   miles: real("miles").notNull(),
   durationHours: real("duration_hours").notNull(),
   moodTag: text("mood_tag").notNull(),
@@ -59,3 +76,46 @@ export const bikes = pgTable("bikes", {
 
 export type Bike = typeof bikes.$inferSelect;
 export type NewBike = typeof bikes.$inferInsert;
+
+export const SAVED_TRIP_STATUSES = ["wishlist", "upcoming"] as const;
+export type SavedTripStatus = (typeof SAVED_TRIP_STATUSES)[number];
+
+export const savedTrips = pgTable(
+  "saved_trips",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    status: text("status").$type<SavedTripStatus>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("saved_trips_user_trip_unique").on(table.userId, table.tripId),
+  ],
+);
+
+export type SavedTrip = typeof savedTrips.$inferSelect;
+
+export const reviews = pgTable(
+  "reviews",
+  {
+    id: serial("id").primaryKey(),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull(),
+    reviewerName: text("reviewer_name").notNull(),
+    rating: integer("rating").notNull(),
+    comment: text("comment"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [uniqueIndex("reviews_trip_user_unique").on(table.tripId, table.userId)],
+);
+
+export type Review = typeof reviews.$inferSelect;

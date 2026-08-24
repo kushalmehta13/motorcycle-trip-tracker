@@ -1,7 +1,12 @@
-import type { Trip } from "@/db/schema";
+import Link from "next/link";
+import type { Review, SavedTripStatus } from "@/db/schema";
+import type { TripWithRating } from "@/lib/trips";
 import { accentForTag } from "@/lib/trips";
 import GpxDownloadButton from "./GpxDownloadButton";
+import RatingBlocks from "./RatingBlocks";
+import ReviewForm from "./ReviewForm";
 import RouteMap from "./RouteMap";
+import SavedTripButtons from "./SavedTripButtons";
 
 function formatDuration(hours: number): string {
   const whole = Math.floor(hours);
@@ -22,7 +27,19 @@ function StatCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function TripDetail({ trip }: { trip: Trip }) {
+export default function TripDetail({
+  trip,
+  reviews = [],
+  userReview = null,
+  savedStatuses,
+  isSignedIn = false,
+}: {
+  trip: TripWithRating;
+  reviews?: Review[];
+  userReview?: Review | null;
+  savedStatuses?: SavedTripStatus[];
+  isSignedIn?: boolean;
+}) {
   const accent = accentForTag(trip.moodTag);
 
   return (
@@ -61,30 +78,107 @@ export default function TripDetail({ trip }: { trip: Trip }) {
           <StatCell label="Ride time" value={formatDuration(trip.durationHours)} />
         </div>
         <div className="col-span-2 border-t-[3px] border-ink sm:col-span-1 sm:border-t-0">
-          <StatCell label="Waypoints logged" value={String(trip.route.length)} />
+          <StatCell
+            label="Community rating"
+            value={
+              trip.reviewCount > 0
+                ? `${trip.avgRating?.toFixed(1)} / 5`
+                : "Unrated"
+            }
+          />
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 px-5 pt-5 sm:px-7">
-        <div className="text-[10px] font-bold tracking-[0.18em] uppercase opacity-60">
-          Difficulty
+      <div className="flex flex-wrap items-center justify-between gap-4 px-5 pt-5 sm:px-7">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="text-[10px] font-bold tracking-[0.18em] uppercase opacity-60">
+            Difficulty
+          </div>
+          <div className="flex gap-1.5" aria-label={`Difficulty ${trip.difficulty} of 5`}>
+            {[1, 2, 3, 4, 5].map((level) => (
+              <span
+                key={level}
+                className="inline-block h-4 w-6 border-2 border-ink"
+                style={{
+                  backgroundColor:
+                    level <= trip.difficulty ? accent : "var(--color-paper)",
+                }}
+              />
+            ))}
+          </div>
         </div>
-        <div className="flex gap-1.5" aria-label={`Difficulty ${trip.difficulty} of 5`}>
-          {[1, 2, 3, 4, 5].map((level) => (
-            <span
-              key={level}
-              className="inline-block h-4 w-6 border-2 border-ink"
-              style={{
-                backgroundColor:
-                  level <= trip.difficulty ? accent : "var(--color-paper)",
-              }}
-            />
-          ))}
-        </div>
-        <div className="text-xs font-bold tracking-widest uppercase">
-          {trip.difficulty}/5
-        </div>
+
+        {isSignedIn && savedStatuses && (
+          <SavedTripButtons tripId={trip.id} initial={savedStatuses} />
+        )}
       </div>
+
+      <section aria-label="Ride reports" className="mt-7 border-y-[3px] border-ink bg-white px-5 py-5 sm:px-7">
+        <div className="flex flex-wrap items-center gap-3">
+          <h3 className="font-display text-sm tracking-wide uppercase">
+            Ride reports
+          </h3>
+          {trip.reviewCount > 0 && (
+            <span className="flex items-center gap-2">
+              <RatingBlocks value={trip.avgRating ?? 0} size="sm" />
+              <span className="text-xs font-bold opacity-70">
+                {trip.avgRating?.toFixed(1)} · {trip.reviewCount}{" "}
+                {trip.reviewCount === 1 ? "report" : "reports"}
+              </span>
+            </span>
+          )}
+        </div>
+
+        {reviews.length > 0 ? (
+          <ul className="mt-4 flex flex-col gap-4">
+            {reviews.map((review) => (
+              <li key={review.id} className="border-l-4 border-accent-teal pl-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold tracking-widest uppercase">
+                    {review.reviewerName}
+                  </span>
+                  <RatingBlocks value={review.rating} size="sm" accent="#FFD02F" />
+                  <span className="text-[10px] font-medium opacity-50">
+                    {new Date(review.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+                {review.comment && (
+                  <p className="mt-1 text-sm leading-relaxed font-medium opacity-80">
+                    {review.comment}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm font-medium opacity-60">
+            No ride reports yet — be the first to weigh in.
+          </p>
+        )}
+
+        <div className="mt-5">
+          {isSignedIn ? (
+            <ReviewForm
+              tripId={trip.id}
+              initialRating={userReview?.rating}
+              initialComment={userReview?.comment ?? null}
+            />
+          ) : (
+            <p className="text-sm font-medium opacity-70">
+              <Link
+                href={`/sign-in?redirect_url=/trips/${trip.slug}`}
+                className="underline decoration-2 underline-offset-2 hover:text-accent-pink"
+              >
+                Sign in
+              </Link>{" "}
+              to rate this ride or add it to your list.
+            </p>
+          )}
+        </div>
+      </section>
 
       <div className="px-5 py-6 sm:px-7">
         <GpxDownloadButton name={trip.name} slug={trip.slug} points={trip.route} />

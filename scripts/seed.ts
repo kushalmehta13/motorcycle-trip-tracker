@@ -9,6 +9,7 @@ import { trips, type NewTrip } from "../src/db/schema";
 const seedTrips: NewTrip[] = [
   {
     slug: "tail-of-the-dragon",
+    category: "forest",
     name: "Tail of the Dragon",
     miles: 11,
     durationHours: 0.5,
@@ -34,6 +35,7 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "big-sur-coast-run",
+    category: "coastal",
     name: "Big Sur Coast Run",
     miles: 62,
     durationHours: 2.5,
@@ -65,6 +67,7 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "blue-ridge-parkway-south",
+    category: "mountain",
     name: "Blue Ridge Parkway South",
     miles: 74,
     durationHours: 2.2,
@@ -92,6 +95,7 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "angeles-crest-highway",
+    category: "mountain",
     name: "Angeles Crest Highway",
     miles: 40,
     durationHours: 1.6,
@@ -117,6 +121,7 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "needles-highway-loop",
+    category: "canyon",
     name: "Needles Highway Loop",
     miles: 32,
     durationHours: 1.3,
@@ -143,6 +148,7 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "passo-dello-stelvio",
+    category: "mountain",
     name: "Passo dello Stelvio",
     miles: 15,
     durationHours: 0.8,
@@ -179,6 +185,7 @@ async function main() {
         miles: sql`excluded.miles`,
         durationHours: sql`excluded.duration_hours`,
         moodTag: sql`excluded.mood_tag`,
+        category: sql`excluded.category`,
         description: sql`excluded.description`,
         difficulty: sql`excluded.difficulty`,
         bestSeason: sql`excluded.best_season`,

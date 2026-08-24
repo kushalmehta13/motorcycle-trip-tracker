@@ -1,43 +1,23 @@
+import Link from "next/link";
+import CategoryFilter from "@/components/CategoryFilter";
 import TripCard from "@/components/TripCard";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { getTrips } from "@/lib/trips";
 
 export const dynamic = "force-dynamic";
 
-function StatBox({
-  label,
-  value,
-  accent,
+export default async function HomePage({
+  searchParams,
 }: {
-  label: string;
-  value: string;
-  accent: string;
+  searchParams: Promise<{ category?: string; q?: string }>;
 }) {
-  return (
-    <div className="brutal-chip bg-white px-4 py-2">
-      <div className="font-display text-lg leading-none" style={{ color: "#161616" }}>
-        {value}
-      </div>
-      <div
-        className="mt-1 text-[10px] font-bold tracking-[0.18em] uppercase"
-        style={{ color: "#161616" }}
-      >
-        {label}
-        <span
-          className="ml-1.5 inline-block h-2 w-2 border border-ink align-middle"
-          style={{ backgroundColor: accent }}
-        />
-      </div>
-    </div>
-  );
-}
+  const { category, q } = await searchParams;
 
-export default async function HomePage() {
   let trips: Awaited<ReturnType<typeof getTrips>> = [];
   let error: string | null = null;
 
   try {
-    trips = await getTrips();
+    trips = await getTrips({ category, q });
   } catch (err) {
     error =
       err instanceof Error ? err.message : "Something went wrong loading trips.";
@@ -53,7 +33,7 @@ export default async function HomePage() {
       <SiteHeader active="catalog" />
 
       <main className="mx-auto w-full max-w-6xl grow px-4 pt-12 pb-20 sm:px-6">
-        <section className="mb-14">
+        <section className="mb-10">
           <h1 className="font-display text-4xl leading-[1.02] uppercase sm:text-6xl">
             Every great ride
             <br />
@@ -63,17 +43,30 @@ export default async function HomePage() {
             </span>
           </h1>
           <p className="mt-6 max-w-md text-base font-medium leading-relaxed">
-            Hand-picked routes worth the detour — with maps, mileage, and an
-            honest heads-up on what you&apos;re in for.
+            Community-built catalog of roads worth the detour — with maps,
+            mileage, and honest ride reports.
           </p>
 
           {!error && trips.length > 0 && (
             <div className="mt-8 flex flex-wrap gap-4">
-              <StatBox label="Routes" value={String(trips.length)} accent="#FFD02F" />
-              <StatBox label="Total miles" value={`${totalMiles} MI`} accent="#FF5D8F" />
-              <StatBox label="Moods" value={String(moodCount)} accent="#2EC4B6" />
+              <StatChip label="Routes" value={String(trips.length)} />
+              <StatChip label="Total miles" value={`${totalMiles} MI`} />
+              <StatChip label="Moods" value={String(moodCount)} />
             </div>
           )}
+
+          <div className="mt-8">
+            <Link
+              href="/add-ride"
+              className="brutal-chip inline-block -rotate-1 bg-accent-teal px-4 py-2 font-display text-sm tracking-widest uppercase text-paper transition-transform duration-150 hover:-translate-y-0.5"
+            >
+              + Share a ride
+            </Link>
+          </div>
+
+          <div className="mt-8">
+            <CategoryFilter active={category} q={q} />
+          </div>
         </section>
 
         {error && (
@@ -85,17 +78,11 @@ export default async function HomePage() {
 
         {!error && trips.length === 0 && (
           <div className="brutal-card flex flex-col items-start gap-3 border-dashed bg-white p-8">
-            <h2 className="font-display text-xl uppercase">No trips yet</h2>
+            <h2 className="font-display text-xl uppercase">Nothing here yet</h2>
             <p className="text-sm font-medium">
-              The catalog is empty. Run{" "}
-              <code className="border border-ink bg-paper px-1.5 py-0.5 font-mono text-xs">
-                npm run db:push
-              </code>{" "}
-              then{" "}
-              <code className="border border-ink bg-paper px-1.5 py-0.5 font-mono text-xs">
-                npm run db:seed
-              </code>{" "}
-              to load sample rides.
+              {category || q
+                ? "No rides match that filter. Try another category or clear the search."
+                : "The catalog is empty — be the first to share a ride."}
             </p>
           </div>
         )}
@@ -111,6 +98,17 @@ export default async function HomePage() {
       </main>
 
       <SiteFooter />
+    </div>
+  );
+}
+
+function StatChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="brutal-chip bg-white px-4 py-2">
+      <div className="font-display text-lg leading-none">{value}</div>
+      <div className="mt-1 text-[10px] font-bold tracking-[0.18em] uppercase opacity-60">
+        {label}
+      </div>
     </div>
   );
 }

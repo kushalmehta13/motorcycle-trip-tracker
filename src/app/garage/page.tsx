@@ -4,11 +4,10 @@ import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import BikeArt from "@/components/BikeArt";
 import BikeCard from "@/components/BikeCard";
+import RemoveSavedButton from "@/components/RemoveSavedButton";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
-import {
-  getBikes,
-  resolvePhotoUrls,
-} from "@/lib/bikes";
+import { getBikes, resolvePhotoUrls } from "@/lib/bikes";
+import { getSavedTrips } from "@/lib/trips";
 
 export const dynamic = "force-dynamic";
 
@@ -24,10 +23,12 @@ export default async function GaragePage() {
   }
 
   let bikes: Awaited<ReturnType<typeof getBikes>> = [];
+  let saved: Awaited<ReturnType<typeof getSavedTrips>> = [];
   let error: string | null = null;
 
   try {
     bikes = await resolvePhotoUrls(await getBikes(userId));
+    saved = await getSavedTrips(userId);
   } catch (err) {
     error =
       err instanceof Error ? err.message : "Something went wrong loading the garage.";
@@ -86,6 +87,69 @@ export default async function GaragePage() {
           {bikes.map((bike) => (
             <BikeCard key={bike.id} bike={bike} />
           ))}
+        </section>
+
+        <section aria-label="Saved trips" className="mt-16">
+          <h2 className="font-display text-2xl uppercase sm:text-3xl">
+            Trips to{" "}
+            <span className="brutal-chip inline-block -rotate-1 bg-accent-pink px-3 py-0.5 text-paper">
+              ride
+            </span>
+          </h2>
+
+          {!error && saved.length === 0 ? (
+            <div className="brutal-card mt-6 border-dashed bg-white p-6 text-sm font-medium opacity-70">
+              Nothing saved yet. Browse the{" "}
+              <Link
+                href="/"
+                className="underline decoration-2 underline-offset-2"
+              >
+                catalog
+              </Link>{" "}
+              and stash rides on your wishlist or mark them as planned.
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-8 lg:grid-cols-2">
+              {(["wishlist", "upcoming"] as const).map((status) => {
+                const group = saved.filter((entry) => entry.status === status);
+                return (
+                  <div key={status} className="brutal-card bg-white p-5">
+                    <h3 className="font-display text-sm tracking-widest uppercase">
+                      {status === "wishlist" ? "Wishlist" : "Planned rides"}
+                      <span className="ml-2 border-2 border-ink bg-paper px-1.5 py-0.5 text-[10px]">
+                        {group.length}
+                      </span>
+                    </h3>
+                    {group.length === 0 ? (
+                      <p className="mt-3 text-xs font-medium opacity-60">
+                        Empty for now.
+                      </p>
+                    ) : (
+                      <ul className="mt-4 flex flex-col gap-3">
+                        {group.map(({ trip }) => (
+                          <li
+                            key={trip.id}
+                            className="flex items-center gap-3 border-b-2 border-dashed border-ink/20 pb-3 last:border-0 last:pb-0"
+                          >
+                            <Link
+                              href={`/trips/${trip.slug}`}
+                              className="grow text-sm font-bold hover:underline"
+                            >
+                              {trip.name}
+                              <span className="ml-2 text-[10px] font-medium tracking-widest uppercase opacity-50">
+                                {Math.round(trip.miles)} mi
+                              </span>
+                            </Link>
+                            <RemoveSavedButton tripId={trip.id} status={status} />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
       </main>
 
