@@ -1,30 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
 import {
   CircleMarker,
   MapContainer,
   Polyline,
   TileLayer,
-  useMap,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { latLngBounds } from "leaflet";
 import type { LatLngExpression } from "leaflet";
-
-function FitBounds({ points, interactive }: { points: LatLngExpression[]; interactive: boolean }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (points.length > 1) {
-      map.fitBounds(latLngBounds(points), {
-        padding: interactive ? [28, 28] : [16, 16],
-      });
-    }
-  }, [map, points, interactive]);
-
-  return null;
-}
 
 export default function LeafletMap({
   points,
@@ -44,8 +28,11 @@ export default function LeafletMap({
 
   return (
     <MapContainer
-      center={start}
-      zoom={8}
+      bounds={latLngBounds(points)}
+      boundsOptions={{
+        padding: interactive ? [28, 28] : [16, 16],
+        animate: false,
+      }}
       className="h-full w-full"
       zoomControl={interactive}
       attributionControl
@@ -80,7 +67,6 @@ export default function LeafletMap({
         radius={5}
         pathOptions={{ color: "#161616", weight: 2, fillColor: "#161616", fillOpacity: 1 }}
       />
-      <FitBounds points={points} interactive={interactive} />
     </MapContainer>
   );
 }
