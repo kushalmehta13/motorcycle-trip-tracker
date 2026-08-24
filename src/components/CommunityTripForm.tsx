@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 import { createTripAction, updateTripAction } from "@/app/trips/actions";
 import StopRouteEditor from "./StopRouteEditor";
+import BrutalSelect from "./BrutalSelect";
 
 const inputClass =
   "w-full border-[3px] border-ink bg-white px-3 py-2.5 text-sm font-medium placeholder:text-ink/40 focus:outline-none focus-visible:outline-none focus:border-accent-pink";
@@ -53,6 +54,10 @@ export default function CommunityTripForm({
   const [country, setCountry] = useState(displayCase(initial?.country));
   const [stateProvince, setStateProvince] = useState(displayCase(initial?.stateProvince));
   const [region, setRegion] = useState(displayCase(initial?.region));
+  const [category, setCategory] = useState<TripCategory>(
+    initial?.category ?? "mixed",
+  );
+  const [difficulty, setDifficulty] = useState(initial?.difficulty ?? 3);
   const [miles, setMiles] = useState(initial ? String(initial.miles) : "");
   const [duration, setDuration] = useState(
     initial ? String(initial.durationHours) : "",
@@ -67,7 +72,6 @@ export default function CommunityTripForm({
     const form = new FormData(event.currentTarget);
     const parsedMiles = Number(miles);
     const parsedDuration = Number(duration);
-    const difficulty = Number(form.get("difficulty"));
 
     if (stops.length < 2) {
       setError("Add at least two stops to build a route.");
@@ -85,7 +89,7 @@ export default function CommunityTripForm({
     setBusy(true);
     const payload = {
       name: String(form.get("name") ?? ""),
-      category: String(form.get("category")) as TripCategory,
+      category,
       continent,
       country,
       stateProvince,
@@ -151,23 +155,21 @@ export default function CommunityTripForm({
           <label htmlFor="continent" className={labelClass}>
             Continent *
           </label>
-          <select
+          <BrutalSelect
             id="continent"
             name="continent"
-            className={inputClass}
-            value={continent}
-            onChange={(event) => setContinent(event.target.value)}
-          >
-            <option value="">Pick one…</option>
-            {CONTINENTS.map((continent) => (
-              <option key={continent} value={continent}>
-                {continent
-                  .split("-")
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(" ")}
-              </option>
-            ))}
-          </select>
+            size="field"
+            ariaLabel="Continent"
+            options={CONTINENTS.map((c) => ({
+              value: c,
+              label: c
+                .split("-")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" "),
+            }))}
+            value={continent || CONTINENTS[0]}
+            onValueChange={setContinent}
+          />
         </div>
 
         <div>
@@ -219,18 +221,17 @@ export default function CommunityTripForm({
           <label htmlFor="category" className={labelClass}>
             Category
           </label>
-          <select
-            id="category"
+          <BrutalSelect
             name="category"
-            className={inputClass}
-            defaultValue={initial?.category ?? "mixed"}
-          >
-            {TRIP_CATEGORIES.map((category) => (
-              <option key={category} value={category}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </option>
-            ))}
-          </select>
+            size="field"
+            ariaLabel="Category"
+            options={TRIP_CATEGORIES.map((c) => ({
+              value: c,
+              label: c.charAt(0).toUpperCase() + c.slice(1),
+            }))}
+            value={category}
+            onValueChange={(value) => setCategory(value as TripCategory)}
+          />
         </div>
 
         <div>
@@ -302,19 +303,18 @@ export default function CommunityTripForm({
           <label htmlFor="difficulty" className={labelClass}>
             Difficulty
           </label>
-          <select
+          <BrutalSelect
             id="difficulty"
             name="difficulty"
-            className={inputClass}
-            defaultValue={String(initial?.difficulty ?? 3)}
-          >
-            {[1, 2, 3, 4, 5].map((level) => (
-              <option key={level} value={level}>
-                {level} —{" "}
-                {["Sunday cruise", "Relaxed", "Moderate", "Demanding", "Expert only"][level - 1]}
-              </option>
-            ))}
-          </select>
+            size="field"
+            ariaLabel="Difficulty"
+            options={[1, 2, 3, 4, 5].map((level) => ({
+              value: String(level),
+              label: `${level} — ${["Sunday cruise", "Relaxed", "Moderate", "Demanding", "Expert only"][level - 1]}`,
+            }))}
+            value={String(difficulty)}
+            onValueChange={(value) => setDifficulty(Number(value))}
+          />
         </div>
 
         <div>

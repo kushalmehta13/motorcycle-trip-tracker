@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 import { BIKE_TYPES, type BikeType } from "@/db/schema";
 import { addBikeAction } from "@/app/garage/actions";
+import BrutalSelect from "./BrutalSelect";
 
 const inputClass =
   "w-full border-[3px] border-ink bg-white px-3 py-2.5 text-sm font-medium placeholder:text-ink/40 focus:outline-none focus-visible:outline-none focus:border-accent-pink";
@@ -15,6 +16,7 @@ export default function NewBikeForm() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [photo, setPhoto] = useState<File | null>(null);
+  const [bikeType, setBikeType] = useState<BikeType>("sport");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -30,7 +32,6 @@ export default function NewBikeForm() {
     setError(null);
 
     const form = new FormData(event.currentTarget);
-    const type = String(form.get("type")) as BikeType;
     const year = Number(form.get("year"));
     const mileage = Number(form.get("mileage") || 0);
 
@@ -55,11 +56,11 @@ export default function NewBikeForm() {
       }
 
       const result = await addBikeAction({
+        type: bikeType,
         nickname: String(form.get("nickname")),
         make: String(form.get("make")),
         model: String(form.get("model")),
         year,
-        type,
         mileage,
         notes: String(form.get("notes") || ""),
         imageUrl,
@@ -95,13 +96,18 @@ export default function NewBikeForm() {
           <label htmlFor="type" className={labelClass}>
             Type
           </label>
-          <select id="type" name="type" className={inputClass} defaultValue="sport">
-            {BIKE_TYPES.map((t) => (
-              <option key={t} value={t} className="capitalize">
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </option>
-            ))}
-          </select>
+          <BrutalSelect
+            id="type"
+            name="type"
+            size="field"
+            ariaLabel="Bike type"
+            options={BIKE_TYPES.map((t) => ({
+              value: t,
+              label: t.charAt(0).toUpperCase() + t.slice(1),
+            }))}
+            value={bikeType}
+            onValueChange={(value) => setBikeType(value as BikeType)}
+          />
         </div>
         <div>
           <label htmlFor="make" className={labelClass}>

@@ -3,10 +3,10 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { slugToLabel as labelize } from "@/lib/labels";
+import BrutalSelect from "./BrutalSelect";
 import type { GeoBucket, TripSort } from "@/lib/trips";
 
-const selectClass =
-  "border-[3px] border-ink bg-white px-2.5 py-2 text-xs font-bold uppercase tracking-wide focus:border-accent-pink focus:outline-none focus-visible:outline-none";
+const ALL = "__all__";
 
 export default function CatalogControls({
   continents,
@@ -45,73 +45,69 @@ export default function CatalogControls({
 
   return (
     <div className="flex flex-wrap items-center gap-2.5">
-      <select
-        aria-label="Filter by continent"
-        className={selectClass}
-        value={searchParams.get("continent") ?? ""}
-        onChange={(event) => update("continent", event.target.value || undefined)}
-      >
-        <option value="">All continents</option>
-        {continents.map(({ value, count }) => (
-          <option key={value} value={value}>
-            {labelize(value)} ({count})
-          </option>
-        ))}
-      </select>
+      <BrutalSelect
+        ariaLabel="Filter by continent"
+        options={[
+          { value: ALL, label: "All continents" },
+          ...continents.map(({ value, count }) => ({
+            value,
+            label: `${labelize(value)} (${count})`,
+          })),
+        ]}
+        value={searchParams.get("continent") ?? ALL}
+        onValueChange={(value) => update("continent", value === ALL ? undefined : value)}
+      />
 
-      <select
-        aria-label="Filter by country"
-        className={selectClass}
-        value={searchParams.get("country") ?? ""}
-        onChange={(event) => update("country", event.target.value || undefined)}
-      >
-        <option value="">All countries</option>
-        {countries.map(({ value, count }) => (
-          <option key={value} value={value}>
-            {labelize(value)} ({count})
-          </option>
-        ))}
-      </select>
+      <BrutalSelect
+        ariaLabel="Filter by country"
+        options={[
+          { value: ALL, label: "All countries" },
+          ...countries.map(({ value, count }) => ({
+            value,
+            label: `${labelize(value)} (${count})`,
+          })),
+        ]}
+        value={searchParams.get("country") ?? ALL}
+        onValueChange={(value) => update("country", value === ALL ? undefined : value)}
+      />
 
-      <select
-        aria-label="Filter by state or province"
-        className={selectClass}
-        value={searchParams.get("state") ?? ""}
-        onChange={(event) => update("state", event.target.value || undefined)}
-      >
-        <option value="">All states / provinces</option>
-        {states.map(({ value, count }) => (
-          <option key={value} value={value}>
-            {labelize(value)} ({count})
-          </option>
-        ))}
-      </select>
+      <BrutalSelect
+        ariaLabel="Filter by state or province"
+        options={[
+          { value: ALL, label: "All states / provinces" },
+          ...states.map(({ value, count }) => ({
+            value,
+            label: `${labelize(value)} (${count})`,
+          })),
+        ]}
+        value={searchParams.get("state") ?? ALL}
+        onValueChange={(value) => update("state", value === ALL ? undefined : value)}
+      />
 
-      <select
-        aria-label="Filter by part of state"
-        className={selectClass}
-        value={searchParams.get("region") ?? ""}
-        onChange={(event) => update("region", event.target.value || undefined)}
-      >
-        <option value="">All areas</option>
-        {regions.map(({ value, count }) => (
-          <option key={value} value={value}>
-            {labelize(value)} ({count})
-          </option>
-        ))}
-      </select>
+      <BrutalSelect
+        ariaLabel="Filter by part of state"
+        options={[
+          { value: ALL, label: "All areas" },
+          ...regions.map(({ value, count }) => ({
+            value,
+            label: `${labelize(value)} (${count})`,
+          })),
+        ]}
+        value={searchParams.get("region") ?? ALL}
+        onValueChange={(value) => update("region", value === ALL ? undefined : value)}
+      />
 
-      <select
-        aria-label="Sort rides"
-        className={selectClass}
+      <BrutalSelect
+        ariaLabel="Sort rides"
+        options={[
+          { value: "popular", label: "Most popular" },
+          { value: "rating", label: "Highest rated" },
+          { value: "newest", label: "Newest" },
+          { value: "miles", label: "Shortest" },
+        ]}
         value={sort}
-        onChange={(event) => update("sort", event.target.value)}
-      >
-        <option value="popular">Most popular</option>
-        <option value="rating">Highest rated</option>
-        <option value="newest">Newest</option>
-        <option value="miles">Shortest</option>
-      </select>
+        onValueChange={(value) => update("sort", value)}
+      />
 
       <form
         method="GET"
