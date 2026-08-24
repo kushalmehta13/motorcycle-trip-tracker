@@ -95,7 +95,11 @@ export default async function GaragePage() {
           ))}
         </section>
 
-        <section aria-label="Your contributions" className="mt-16">
+        <section
+          id="your-rides"
+          aria-label="Your contributions"
+          className="mt-16 scroll-mt-24"
+        >
           <h2 className="font-display text-2xl uppercase sm:text-3xl">
             Your{" "}
             <span className="brutal-chip inline-block -rotate-1 bg-accent-yellow px-3 py-0.5">

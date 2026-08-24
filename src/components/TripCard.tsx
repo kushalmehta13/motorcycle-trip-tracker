@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { categoryLabel } from "@/components/CategoryFilter";
+import { categoryLabel, slugToLabel } from "@/lib/labels";
 import { accentForTag, type TripWithRating } from "@/lib/trips";
 import RatingBlocks from "./RatingBlocks";
 import RouteMap from "./RouteMap";
@@ -47,6 +47,18 @@ export default function TripCard({ trip }: { trip: TripWithRating }) {
             {categoryLabel(trip.category)}
           </span>
         </div>
+
+        {(trip.country || trip.stateProvince || trip.continent) && (
+          <p className="text-[10px] font-bold tracking-[0.18em] uppercase opacity-50">
+            {[
+              trip.stateProvince && slugToLabel(trip.stateProvince),
+              trip.country && slugToLabel(trip.country),
+              !trip.stateProvince && trip.continent && slugToLabel(trip.continent),
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        )}
 
         <h2 className="font-display text-xl leading-tight uppercase">
           {trip.name}

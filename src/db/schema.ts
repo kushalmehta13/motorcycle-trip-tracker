@@ -28,6 +28,17 @@ export type NamedStop = {
   lng: number;
 };
 
+export const CONTINENTS = [
+  "north-america",
+  "south-america",
+  "europe",
+  "asia",
+  "africa",
+  "oceania",
+] as const;
+
+export type Continent = (typeof CONTINENTS)[number];
+
 export const trips = pgTable("trips", {
   id: serial("id").primaryKey(),
   slug: text("slug").notNull().unique(),
@@ -37,6 +48,9 @@ export const trips = pgTable("trips", {
     .$type<TripCategory>()
     .notNull()
     .default("mixed"),
+  continent: text("continent").$type<Continent>(),
+  country: text("country"),
+  stateProvince: text("state_province"),
   miles: real("miles").notNull(),
   durationHours: real("duration_hours").notNull(),
   moodTag: text("mood_tag").notNull(),

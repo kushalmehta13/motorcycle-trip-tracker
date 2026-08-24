@@ -3,8 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
-import type { NamedStop, SavedTripStatus, TripCategory } from "@/db/schema";
+import type {
+  Continent,
+  NamedStop,
+  SavedTripStatus,
+  TripCategory,
+} from "@/db/schema";
 import {
+  CONTINENTS,
   SAVED_TRIP_STATUSES,
   TRIP_CATEGORIES,
   savedTrips,
@@ -22,6 +28,9 @@ export type ActionResult<T = undefined> =
 type TripFormInput = {
   name: string;
   category: TripCategory;
+  continent?: string;
+  country?: string;
+  stateProvince?: string;
   miles: number;
   durationHours: number;
   moodTag: string;
@@ -31,12 +40,26 @@ type TripFormInput = {
   stops: NamedStop[];
 };
 
+function slugifyGeo(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function validateTripInput(input: TripFormInput): string | null {
   if (!input.name.trim() || !input.moodTag.trim() || !input.description.trim()) {
     return "Name, mood tag, and description are required.";
   }
   if (!TRIP_CATEGORIES.includes(input.category)) {
     return "Pick a valid category.";
+  }
+  if (!input.continent || !CONTINENTS.includes(input.continent as never)) {
+    return "Pick the continent this ride lives in.";
+  }
+  if (!input.country?.trim()) {
+    return "Country is required.";
   }
   if (!Array.isArray(input.stops) || input.stops.length < 2) {
     return "Add at least two stops to build a route.";
@@ -92,11 +115,20 @@ export async function createTripAction(
   const stops = cleanStops(input.stops);
   const { route } = await routeFromStops(stops);
 
+  const geo = {
+    continent: slugifyGeo(input.continent ?? "") as Continent,
+    country: slugifyGeo(input.country ?? ""),
+    stateProvince: input.stateProvince?.trim()
+      ? slugifyGeo(input.stateProvince)
+      : null,
+  };
+
   const trip = await createTrip({
-      userId,
-      name: input.name.trim(),
-      category: input.category,
-      miles: Math.round(input.miles * 10) / 10,
+    userId,
+    name: input.name.trim(),
+    category: input.category,
+    ...geo,
+    miles: Math.round(input.miles * 10) / 10,
       durationHours: Math.round(input.durationHours * 10) / 10,
       moodTag: input.moodTag.trim(),
       description: input.description.trim(),
@@ -141,6 +173,11 @@ export async function updateTripAction(
     .set({
       name: input.name.trim(),
       category: input.category,
+      continent: slugifyGeo(input.continent ?? "") as Continent,
+      country: slugifyGeo(input.country ?? ""),
+      stateProvince: input.stateProvince?.trim()
+        ? slugifyGeo(input.stateProvince)
+        : null,
       miles: Math.round(input.miles * 10) / 10,
       durationHours: Math.round(input.durationHours * 10) / 10,
       moodTag: input.moodTag.trim(),

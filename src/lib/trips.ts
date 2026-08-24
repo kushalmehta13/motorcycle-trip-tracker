@@ -1,9 +1,10 @@
-import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   reviews,
   savedTrips,
   trips,
+  type Continent,
   type Review,
   type SavedTripStatus,
   type Trip,
@@ -12,7 +13,21 @@ import {
 export type TripWithRating = Trip & {
   avgRating: number | null;
   reviewCount: number;
+  saves: number;
+  popularity: number;
 };
+
+export type GeoBucket = { value: string; count: number };
+
+export type TripSort = "popular" | "newest" | "rating" | "miles";
+
+const popularityExpr = sql<number>`(
+  (select count(*) from saved_trips s where s.trip_id = ${trips.id})
+  + (select count(*) from reviews r where r.trip_id = ${trips.id})
+)::int`;
+
+const avgExpr = sql<number | null>`(select avg(r.rating)::float8 from reviews r where r.trip_id = ${trips.id})`;
+const reviewCountExpr = sql<number>`(select count(*)::int from reviews r where r.trip_id = ${trips.id})`;
 
 const tripColumns = {
   id: trips.id,
@@ -20,6 +35,9 @@ const tripColumns = {
   userId: trips.userId,
   name: trips.name,
   category: trips.category,
+  continent: trips.continent,
+  country: trips.country,
+  stateProvince: trips.stateProvince,
   miles: trips.miles,
   durationHours: trips.durationHours,
   moodTag: trips.moodTag,
@@ -36,43 +54,85 @@ function baseQuery() {
   return getDb()
     .select({
       ...tripColumns,
-      avgRating: sql<number | null>`avg(${reviews.rating})::float8`,
-      reviewCount: sql<number>`count(${reviews.id})::int`,
+      avgRating: avgExpr,
+      reviewCount: reviewCountExpr,
+      saves: sql<number>`(select count(*)::int from saved_trips s where s.trip_id = ${trips.id})`,
+      popularity: popularityExpr,
     })
     .from(trips)
-    .leftJoin(reviews, eq(reviews.tripId, trips.id))
-    .groupBy(trips.id)
     .$dynamic();
 }
 
-export async function getTrips(options: {
+export type TripFilters = {
+  continent?: string;
+  country?: string;
+  state?: string;
   category?: string;
   q?: string;
-} = {}): Promise<TripWithRating[]> {
-  let query = baseQuery();
+};
 
-  const filters = [];
-  if (options.category) {
-    filters.push(eq(trips.category, options.category as TripWithRating["category"]));
+function filterConditions(filters: TripFilters): SQL[] {
+  const conditions: SQL[] = [];
+  if (filters.continent) {
+    conditions.push(eq(trips.continent, filters.continent as Continent));
   }
-  if (options.q) {
-    const pattern = `%${options.q}%`;
-    filters.push(
-      or(
-        ilike(trips.name, pattern),
-        ilike(trips.moodTag, pattern),
-        ilike(trips.description, pattern),
-      ),
+  if (filters.country) {
+    conditions.push(eq(trips.country, filters.country));
+  }
+  if (filters.state) {
+    conditions.push(eq(trips.stateProvince, filters.state));
+  }
+  if (filters.category) {
+    conditions.push(eq(trips.category, filters.category as Trip["category"]));
+  }
+  if (filters.q) {
+    const pattern = `%${filters.q}%`;
+    const search = or(
+      ilike(trips.name, pattern),
+      ilike(trips.moodTag, pattern),
+      ilike(trips.description, pattern),
+      ilike(trips.country, pattern),
+      ilike(trips.stateProvince, pattern),
     );
+    if (search) conditions.push(search);
   }
-  if (filters.length > 0) {
-    query = query.where(and(...filters));
-  }
-
-  return query.orderBy(asc(trips.id));
+  return conditions;
 }
 
-export async function getTripBySlug(slug: string): Promise<TripWithRating | undefined> {
+function orderFor(sort: TripSort): SQL[] {
+  switch (sort) {
+    case "newest":
+      return [desc(trips.createdAt)];
+    case "rating":
+      return [
+        desc(sql`coalesce(${avgExpr}, -1)`),
+        desc(reviewCountExpr),
+        desc(popularityExpr),
+      ];
+    case "miles":
+      return [asc(trips.miles)];
+    case "popular":
+    default:
+      return [desc(popularityExpr), desc(reviewCountExpr), asc(trips.name)];
+  }
+}
+
+export async function getTrips(
+  filters: TripFilters & { sort?: TripSort } = {},
+): Promise<TripWithRating[]> {
+  let query = baseQuery();
+
+  const conditions = filterConditions(filters);
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions));
+  }
+
+  return query.orderBy(...orderFor(filters.sort ?? "popular"));
+}
+
+export async function getTripBySlug(
+  slug: string,
+): Promise<TripWithRating | undefined> {
   const rows = await baseQuery().where(eq(trips.slug, slug)).limit(1);
   return rows[0];
 }
@@ -132,10 +192,52 @@ export async function getTripByCreator(
     .orderBy(desc(trips.createdAt));
 }
 
-export async function getTripById(id: number): Promise<Trip | undefined> {
+export async function getGeoBuckets(
+  level: "continent" | "country" | "state",
+  scope: { continent?: string; country?: string; q?: string } = {},
+): Promise<GeoBucket[]> {
   const db = getDb();
-  const [trip] = await db.select().from(trips).where(eq(trips.id, id)).limit(1);
-  return trip;
+
+  const column =
+    level === "continent"
+      ? trips.continent
+      : level === "country"
+        ? trips.country
+        : trips.stateProvince;
+
+  let query = db
+    .select({
+      value: column,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(trips)
+    .$dynamic();
+
+  const conditions: SQL[] = [];
+  if (level !== "continent") {
+    if (scope.continent)
+      conditions.push(eq(trips.continent, scope.continent as Continent));
+    else conditions.push(sql`${trips.continent} is not null`);
+  }
+  if (level === "state") {
+    if (scope.country) conditions.push(eq(trips.country, scope.country));
+    else conditions.push(sql`${trips.country} is not null`);
+  }
+  if (scope.q) {
+    const pattern = `%${scope.q}%`;
+    const search = or(ilike(trips.name, pattern), ilike(trips.moodTag, pattern));
+    if (search) conditions.push(search);
+  }
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions));
+  }
+
+  const rows = await query.groupBy(column);
+
+  return rows
+    .filter((row): row is { value: string; count: number } => Boolean(row.value))
+    .map((row) => ({ value: row.value as string, count: Number(row.count) }))
+    .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
 }
 
 export function accentForTag(tag: string): string {

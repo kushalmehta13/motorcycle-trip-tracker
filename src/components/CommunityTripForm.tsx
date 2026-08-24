@@ -2,7 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { TRIP_CATEGORIES, type NamedStop, type TripCategory } from "@/db/schema";
+import {
+  CONTINENTS,
+  TRIP_CATEGORIES,
+  type NamedStop,
+  type TripCategory,
+} from "@/db/schema";
 import { createTripAction, updateTripAction } from "@/app/trips/actions";
 import StopRouteEditor from "./StopRouteEditor";
 
@@ -21,6 +26,9 @@ export default function CommunityTripForm({
   initial?: {
     name: string;
     category: TripCategory;
+    continent: string | null;
+    country: string | null;
+    stateProvince: string | null;
     moodTag: string;
     description: string;
     miles: number;
@@ -65,6 +73,9 @@ export default function CommunityTripForm({
     const payload = {
       name: String(form.get("name") ?? ""),
       category: String(form.get("category")) as TripCategory,
+      continent: String(form.get("continent") ?? ""),
+      country: String(form.get("country") ?? ""),
+      stateProvince: String(form.get("stateProvince") ?? ""),
       moodTag: String(form.get("moodTag") ?? ""),
       description: String(form.get("description") ?? ""),
       bestSeason: String(form.get("bestSeason") ?? ""),
@@ -85,6 +96,8 @@ export default function CommunityTripForm({
       return;
     }
 
+    setBusy(false);
+    window.history.replaceState(window.history.state, "", "/garage#your-rides");
     router.push(`/trips/${result.data.slug}`);
   }
 
@@ -107,6 +120,66 @@ export default function CommunityTripForm({
             placeholder="Cherohala Skyway Run"
             maxLength={60}
             defaultValue={initial?.name ?? ""}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="continent" className={labelClass}>
+            Continent *
+          </label>
+          <select
+            id="continent"
+            name="continent"
+            className={inputClass}
+            defaultValue={initial?.continent ?? ""}
+          >
+            <option value="">Pick one…</option>
+            {CONTINENTS.map((continent) => (
+              <option key={continent} value={continent}>
+                {continent
+                  .split("-")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ")}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="country" className={labelClass}>
+            Country *
+          </label>
+          <input
+            id="country"
+            name="country"
+            className={inputClass}
+            placeholder="USA"
+            maxLength={40}
+            defaultValue={
+              initial?.country
+                ?.split("-")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ") ?? ""
+            }
+          />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label htmlFor="stateProvince" className={labelClass}>
+            State / province
+          </label>
+          <input
+            id="stateProvince"
+            name="stateProvince"
+            className={inputClass}
+            placeholder="North Carolina"
+            maxLength={40}
+            defaultValue={
+              initial?.stateProvince
+                ?.split("-")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ") ?? ""
+            }
           />
         </div>
 

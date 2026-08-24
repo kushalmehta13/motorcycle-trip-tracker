@@ -9,6 +9,9 @@ import { trips, type NewTrip } from "../src/db/schema";
 const seedTrips: NewTrip[] = [
   {
     slug: "tail-of-the-dragon",
+    continent: "north-america",
+    country: "usa",
+    stateProvince: "north-carolina",
     stops: [
       { name: "Deals Gap, NC", lat: 35.4686, lng: -83.9286 },
       { name: "Tapoco, NC", lat: 35.4838, lng: -83.8778 },
@@ -40,6 +43,9 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "big-sur-coast-run",
+    continent: "north-america",
+    country: "usa",
+    stateProvince: "california",
     stops: [
       { name: "Carmel-by-the-Sea, CA", lat: 36.5552, lng: -121.9233 },
       { name: "Bixby Creek Bridge", lat: 36.3716, lng: -121.9017 },
@@ -78,6 +84,9 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "blue-ridge-parkway-south",
+    continent: "north-america",
+    country: "usa",
+    stateProvince: "north-carolina",
     stops: [
       { name: "Asheville, NC", lat: 35.568, lng: -82.555 },
       { name: "Mount Pisgah, NC", lat: 35.4802, lng: -82.6238 },
@@ -111,6 +120,9 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "angeles-crest-highway",
+    continent: "north-america",
+    country: "usa",
+    stateProvince: "california",
     stops: [
       { name: "La Cañada-Flintridge, CA", lat: 34.208, lng: -118.2 },
       { name: "Red Box Junction", lat: 34.298, lng: -118.05 },
@@ -143,6 +155,9 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "needles-highway-loop",
+    continent: "north-america",
+    country: "usa",
+    stateProvince: "south-dakota",
     stops: [
       { name: "Keystone, SD", lat: 43.878, lng: -103.5 },
       { name: "Needles Eye Tunnel", lat: 43.9312, lng: -103.5648 },
@@ -176,6 +191,9 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "passo-dello-stelvio",
+    continent: "europe",
+    country: "italy",
+    stateProvince: "south-tyrol",
     stops: [
       { name: "Prato allo Stelvio, Italy", lat: 46.618, lng: 10.595 },
       { name: "Passo dello Stelvio", lat: 46.5285, lng: 10.4525 },
@@ -222,6 +240,9 @@ async function main() {
         difficulty: sql`excluded.difficulty`,
         bestSeason: sql`excluded.best_season`,
         stops: sql`excluded.stops`,
+        continent: sql`excluded.continent`,
+        country: sql`excluded.country`,
+        stateProvince: sql`excluded.state_province`,
         route: sql`excluded.route`,
       },
     });

@@ -61,6 +61,9 @@ export default async function EditTripPage({
           initial={{
             name: trip.name,
             category: trip.category,
+            continent: trip.continent,
+            country: trip.country,
+            stateProvince: trip.stateProvince,
             moodTag: trip.moodTag,
             description: trip.description,
             miles: trip.miles,
