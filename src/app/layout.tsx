@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo_Black, Space_Grotesk } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const archivoBlack = Archivo_Black({
@@ -14,9 +15,9 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "MOTO.TRACKER — Ride Catalog",
+  title: "MOTO.TRACKER — Ride Catalog & Garage",
   description:
-    "A hand-picked catalog of motorcycle rides. Maps, mileage, and mood tags for roads worth the detour.",
+    "A hand-picked catalog of motorcycle rides and your personal garage. Maps, mileage, and mood tags for roads worth the detour.",
 };
 
 export default function RootLayout({
@@ -27,13 +28,15 @@ export default function RootLayout({
   modal: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${archivoBlack.variable} ${spaceGrotesk.variable} font-sans antialiased`}
-      >
-        {children}
-        {modal}
-      </body>
-    </html>
+    <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up">
+      <html lang="en">
+        <body
+          className={`${archivoBlack.variable} ${spaceGrotesk.variable} font-sans antialiased`}
+        >
+          {children}
+          {modal}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

@@ -1,11 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { auth } from "@clerk/nextjs/server";
 import type { BikeType } from "@/db/schema";
 import { BIKE_TYPES } from "@/db/schema";
 import { createBike, setMileage } from "@/lib/bikes";
 
-export type AddBikeResult = { ok: true; slug?: string } | { ok: false; error: string };
+export type AddBikeResult = { ok: true } | { ok: false; error: string };
 
 export async function addBikeAction(input: {
   nickname: string;
@@ -17,6 +18,11 @@ export async function addBikeAction(input: {
   notes?: string;
   imageUrl?: string | null;
 }): Promise<AddBikeResult> {
+  const { userId } = await auth();
+  if (!userId) {
+    return { ok: false, error: "You need to sign in first." };
+  }
+
   const nickname = input.nickname.trim();
   const make = input.make.trim();
   const model = input.model.trim();
@@ -36,6 +42,7 @@ export async function addBikeAction(input: {
   }
 
   await createBike({
+    userId,
     nickname,
     make,
     model,
@@ -51,12 +58,15 @@ export async function addBikeAction(input: {
 }
 
 export async function updateMileageAction(formData: FormData): Promise<void> {
+  const { userId } = await auth();
+  if (!userId) return;
+
   const id = Number(formData.get("id"));
   const mileage = Number(formData.get("mileage"));
 
   if (!Number.isInteger(id) || id <= 0) return;
   if (!Number.isFinite(mileage) || mileage < 0 || mileage > 2_000_000) return;
 
-  await setMileage(id, Math.round(mileage));
+  await setMileage(id, userId, mileage);
   revalidatePath("/garage");
 }

@@ -1,10 +1,14 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { bikes, type Bike, type BikeType, type NewBike } from "@/db/schema";
 
-export async function getBikes(): Promise<Bike[]> {
+export async function getBikes(userId: string): Promise<Bike[]> {
   const db = getDb();
-  return db.select().from(bikes).orderBy(desc(bikes.createdAt));
+  return db
+    .select()
+    .from(bikes)
+    .where(eq(bikes.userId, userId))
+    .orderBy(desc(bikes.createdAt));
 }
 
 export async function createBike(input: NewBike): Promise<Bike> {
@@ -13,9 +17,16 @@ export async function createBike(input: NewBike): Promise<Bike> {
   return bike;
 }
 
-export async function setMileage(id: number, mileage: number): Promise<void> {
+export async function setMileage(
+  id: number,
+  userId: string,
+  mileage: number,
+): Promise<void> {
   const db = getDb();
-  await db.update(bikes).set({ mileage }).where(eq(bikes.id, id));
+  await db
+    .update(bikes)
+    .set({ mileage })
+    .where(and(eq(bikes.id, id), eq(bikes.userId, userId)));
 }
 
 export function accentForBike(type: string): string {

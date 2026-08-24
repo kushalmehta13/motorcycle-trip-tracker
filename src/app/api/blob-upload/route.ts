@@ -1,7 +1,13 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(request: Request): Promise<NextResponse> {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = (await request.json()) as HandleUploadBody;
 
   try {

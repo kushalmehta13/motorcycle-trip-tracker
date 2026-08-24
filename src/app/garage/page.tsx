@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import BikeArt from "@/components/BikeArt";
 import BikeCard from "@/components/BikeCard";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
@@ -12,11 +14,17 @@ export const metadata: Metadata = {
 };
 
 export default async function GaragePage() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
   let bikes: Awaited<ReturnType<typeof getBikes>> = [];
   let error: string | null = null;
 
   try {
-    bikes = await getBikes();
+    bikes = await getBikes(userId);
   } catch (err) {
     error =
       err instanceof Error ? err.message : "Something went wrong loading the garage.";

@@ -43,6 +43,7 @@ export type BikeType = (typeof BIKE_TYPES)[number];
 
 export const bikes = pgTable("bikes", {
   id: serial("id").primaryKey(),
+  userId: text("user_id"),
   nickname: text("nickname").notNull(),
   make: text("make").notNull(),
   model: text("model").notNull(),

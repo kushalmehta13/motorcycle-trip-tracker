@@ -3,6 +3,8 @@ import Link from "next/link";
 import NewBikeForm from "@/components/NewBikeForm";
 import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Add a bike — MOTO.TRACKER",
 };
