@@ -25,7 +25,7 @@ export default function TripCard({ trip }: { trip: TripWithRating }) {
         {trip.reviewCount > 0 && (
           <span className="brutal-chip absolute left-2 top-2 z-10 flex items-center gap-1.5 bg-white px-1.5 py-1">
             <RatingBlocks value={trip.avgRating ?? 0} size="sm" />
-            <span className="text-[10px] font-bold">{trip.avgRating?.toFixed(1)}</span>
+            <span className="text-[10px] font-bold">{Number(trip.avgRating ?? 0).toFixed(1)}</span>
           </span>
         )}
       </div>

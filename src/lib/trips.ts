@@ -34,7 +34,7 @@ function baseQuery() {
   return getDb()
     .select({
       ...tripColumns,
-      avgRating: sql<number | null>`avg(${reviews.rating})`,
+      avgRating: sql<number | null>`avg(${reviews.rating})::float8`,
       reviewCount: sql<number>`count(${reviews.id})::int`,
     })
     .from(trips)

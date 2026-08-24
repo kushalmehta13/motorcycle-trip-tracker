@@ -82,7 +82,7 @@ export default function TripDetail({
             label="Community rating"
             value={
               trip.reviewCount > 0
-                ? `${trip.avgRating?.toFixed(1)} / 5`
+                ? `${Number(trip.avgRating ?? 0).toFixed(1)} / 5`
                 : "Unrated"
             }
           />
@@ -122,7 +122,7 @@ export default function TripDetail({
             <span className="flex items-center gap-2">
               <RatingBlocks value={trip.avgRating ?? 0} size="sm" />
               <span className="text-xs font-bold opacity-70">
-                {trip.avgRating?.toFixed(1)} · {trip.reviewCount}{" "}
+                {Number(trip.avgRating ?? 0).toFixed(1)} · {trip.reviewCount}{" "}
                 {trip.reviewCount === 1 ? "report" : "reports"}
               </span>
             </span>
