@@ -51,6 +51,7 @@ export default function TripCard({ trip }: { trip: TripWithRating }) {
         {(trip.country || trip.stateProvince || trip.continent) && (
           <p className="text-[10px] font-bold tracking-[0.18em] uppercase opacity-50">
             {[
+              trip.region && slugToLabel(trip.region),
               trip.stateProvince && slugToLabel(trip.stateProvince),
               trip.country && slugToLabel(trip.country),
               !trip.stateProvince && trip.continent && slugToLabel(trip.continent),

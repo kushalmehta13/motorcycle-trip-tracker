@@ -16,6 +16,14 @@ const inputClass =
 const labelClass =
   "block text-[11px] font-bold tracking-[0.18em] uppercase mb-1.5";
 
+function displayCase(slug: string | null | undefined): string {
+  if (!slug) return "";
+  return slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export default function CommunityTripForm({
   mode,
   tripId,
@@ -31,6 +39,7 @@ export default function CommunityTripForm({
     stateProvince: string | null;
     moodTag: string;
     description: string;
+    region: string | null;
     miles: number;
     durationHours: number;
     difficulty: number;
@@ -40,6 +49,10 @@ export default function CommunityTripForm({
 }) {
   const router = useRouter();
   const [stops, setStops] = useState<NamedStop[]>(initial?.stops ?? []);
+  const [continent, setContinent] = useState(initial?.continent ?? "");
+  const [country, setCountry] = useState(displayCase(initial?.country));
+  const [stateProvince, setStateProvince] = useState(displayCase(initial?.stateProvince));
+  const [region, setRegion] = useState(displayCase(initial?.region));
   const [miles, setMiles] = useState(initial ? String(initial.miles) : "");
   const [duration, setDuration] = useState(
     initial ? String(initial.durationHours) : "",
@@ -73,11 +86,12 @@ export default function CommunityTripForm({
     const payload = {
       name: String(form.get("name") ?? ""),
       category: String(form.get("category")) as TripCategory,
-      continent: String(form.get("continent") ?? ""),
-      country: String(form.get("country") ?? ""),
-      stateProvince: String(form.get("stateProvince") ?? ""),
+      continent,
+      country,
+      stateProvince,
       moodTag: String(form.get("moodTag") ?? ""),
       description: String(form.get("description") ?? ""),
+      region,
       bestSeason: String(form.get("bestSeason") ?? ""),
       miles: parsedMiles,
       durationHours: parsedDuration,
@@ -105,7 +119,17 @@ export default function CommunityTripForm({
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <section>
         <span className={labelClass}>Stops & route *</span>
-        <StopRouteEditor stops={stops} onChange={setStops} />
+        <StopRouteEditor
+          stops={stops}
+          onChange={setStops}
+          onGeoHint={(hint) => {
+            const clean = hint;
+            if (clean.continent) setContinent(clean.continent);
+            if (clean.country) setCountry(displayCase(clean.country));
+            if (clean.stateProvince) setStateProvince(displayCase(clean.stateProvince));
+            if (clean.region) setRegion(displayCase(clean.region));
+          }}
+        />
       </section>
 
       <section className="brutal-card grid gap-5 bg-white p-5 sm:grid-cols-2 sm:p-7">
@@ -131,7 +155,8 @@ export default function CommunityTripForm({
             id="continent"
             name="continent"
             className={inputClass}
-            defaultValue={initial?.continent ?? ""}
+            value={continent}
+            onChange={(event) => setContinent(event.target.value)}
           >
             <option value="">Pick one…</option>
             {CONTINENTS.map((continent) => (
@@ -155,12 +180,8 @@ export default function CommunityTripForm({
             className={inputClass}
             placeholder="USA"
             maxLength={40}
-            defaultValue={
-              initial?.country
-                ?.split("-")
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(" ") ?? ""
-            }
+            value={country}
+            onChange={(event) => setCountry(event.target.value)}
           />
         </div>
 
@@ -172,14 +193,25 @@ export default function CommunityTripForm({
             id="stateProvince"
             name="stateProvince"
             className={inputClass}
-            placeholder="North Carolina"
+            placeholder="Auto-detected from your stops"
             maxLength={40}
-            defaultValue={
-              initial?.stateProvince
-                ?.split("-")
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(" ") ?? ""
-            }
+            value={stateProvince}
+            onChange={(event) => setStateProvince(event.target.value)}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="region" className={labelClass}>
+            Part of state
+          </label>
+          <input
+            id="region"
+            name="region"
+            className={inputClass}
+            placeholder="County or area"
+            maxLength={40}
+            value={region}
+            onChange={(event) => setRegion(event.target.value)}
           />
         </div>
 

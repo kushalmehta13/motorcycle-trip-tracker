@@ -19,7 +19,7 @@ import {
 } from "@/db/schema";
 import { getDb } from "@/db";
 import { createTrip } from "@/lib/create-trip";
-import { routeFromStops } from "@/lib/routing";
+import { deriveGeoFromStops, routeFromStops } from "@/lib/routing";
 
 export type ActionResult<T = undefined> =
   | ({ ok: true } & (T extends undefined ? object : { data: T }))
@@ -31,6 +31,7 @@ type TripFormInput = {
   continent?: string;
   country?: string;
   stateProvince?: string;
+  region?: string;
   miles: number;
   durationHours: number;
   moodTag: string;
@@ -55,11 +56,11 @@ function validateTripInput(input: TripFormInput): string | null {
   if (!TRIP_CATEGORIES.includes(input.category)) {
     return "Pick a valid category.";
   }
-  if (!input.continent || !CONTINENTS.includes(input.continent as never)) {
-    return "Pick the continent this ride lives in.";
-  }
-  if (!input.country?.trim()) {
-    return "Country is required.";
+  if (
+    input.continent?.trim() &&
+    !CONTINENTS.includes(input.continent.trim() as never)
+  ) {
+    return "That continent isn't in the atlas yet.";
   }
   if (!Array.isArray(input.stops) || input.stops.length < 2) {
     return "Add at least two stops to build a route.";
@@ -115,28 +116,40 @@ export async function createTripAction(
   const stops = cleanStops(input.stops);
   const { route } = await routeFromStops(stops);
 
-  const geo = {
-    continent: slugifyGeo(input.continent ?? "") as Continent,
-    country: slugifyGeo(input.country ?? ""),
-    stateProvince: input.stateProvince?.trim()
-      ? slugifyGeo(input.stateProvince)
-      : null,
-  };
+  const continent = input.continent?.trim()
+    ? (slugifyGeo(input.continent) as Continent)
+    : undefined;
+  let country = input.country?.trim() ? slugifyGeo(input.country) : undefined;
+  let stateProvince = input.stateProvince?.trim()
+    ? slugifyGeo(input.stateProvince)
+    : null;
+  let region = input.region?.trim() ? slugifyGeo(input.region) : null;
+
+  if (!continent || !country || !stateProvince) {
+    const derived = await deriveGeoFromStops(stops);
+    country = country ?? derived.country;
+    stateProvince =
+      stateProvince ?? derived.stateProvince ?? null;
+    region = region ?? derived.region ?? null;
+  }
 
   const trip = await createTrip({
     userId,
     name: input.name.trim(),
     category: input.category,
-    ...geo,
+    continent,
+    country,
+    stateProvince,
+    region,
     miles: Math.round(input.miles * 10) / 10,
-      durationHours: Math.round(input.durationHours * 10) / 10,
-      moodTag: input.moodTag.trim(),
-      description: input.description.trim(),
-      difficulty: input.difficulty,
-      bestSeason: input.bestSeason?.trim() || null,
-      stops,
-      route,
-    });
+    durationHours: Math.round(input.durationHours * 10) / 10,
+    moodTag: input.moodTag.trim(),
+    description: input.description.trim(),
+    difficulty: input.difficulty,
+    bestSeason: input.bestSeason?.trim() || null,
+    stops,
+    route,
+  });
 
   revalidatePath("/");
   return { ok: true, data: { slug: trip.slug } };
@@ -168,16 +181,32 @@ export async function updateTripAction(
   const stops = cleanStops(input.stops);
   const { route } = await routeFromStops(stops);
 
+  let continent = input.continent?.trim()
+    ? (slugifyGeo(input.continent) as Continent)
+    : undefined;
+  let country = input.country?.trim() ? slugifyGeo(input.country) : undefined;
+  let stateProvince = input.stateProvince?.trim()
+    ? slugifyGeo(input.stateProvince)
+    : null;
+  let region = input.region?.trim() ? slugifyGeo(input.region) : null;
+
+  if (!continent || !country || !stateProvince) {
+    const derived = await deriveGeoFromStops(stops);
+    continent = (continent ?? derived.continent) as Continent | undefined;
+    country = country ?? derived.country;
+    stateProvince = stateProvince ?? derived.stateProvince ?? null;
+    region = region ?? derived.region ?? null;
+  }
+
   await db
     .update(trips)
     .set({
       name: input.name.trim(),
       category: input.category,
-      continent: slugifyGeo(input.continent ?? "") as Continent,
-      country: slugifyGeo(input.country ?? ""),
-      stateProvince: input.stateProvince?.trim()
-        ? slugifyGeo(input.stateProvince)
-        : null,
+      continent: continent ?? null,
+      country: country ?? null,
+      stateProvince,
+      region,
       miles: Math.round(input.miles * 10) / 10,
       durationHours: Math.round(input.durationHours * 10) / 10,
       moodTag: input.moodTag.trim(),

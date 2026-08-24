@@ -17,6 +17,7 @@ type CatalogParams = {
   continent?: string;
   country?: string;
   state?: string;
+  region?: string;
   category?: string;
   q?: string;
   sort?: string;
@@ -31,6 +32,7 @@ export default async function HomePage({
   const continent = params.continent;
   const country = params.country;
   const state = params.state;
+  const region = params.region;
   const sort: TripSort =
     params.sort === "newest" || params.sort === "rating" || params.sort === "miles"
       ? params.sort
@@ -40,14 +42,16 @@ export default async function HomePage({
   let continents: GeoBucket[] = [];
   let countries: GeoBucket[] = [];
   let states: GeoBucket[] = [];
+  let regions: GeoBucket[] = [];
   let error: string | null = null;
 
   try {
-    [trips, continents, countries, states] = await Promise.all([
+    [trips, continents, countries, states, regions] = await Promise.all([
       getTrips({ ...params, sort }),
       getGeoBuckets("continent", { q: params.q }),
       getGeoBuckets("country", { continent, q: params.q }),
       getGeoBuckets("state", { continent, country, q: params.q }),
+      getGeoBuckets("region", { continent, country, state, q: params.q }),
     ]);
   } catch (err) {
     error =
@@ -72,7 +76,16 @@ export default async function HomePage({
     });
   }
   if (state) {
-    crumbs.push({ label: geoLabel(state), href: "" });
+    crumbs.push({
+      label: geoLabel(state),
+      href: region ? `/?continent=${continent}&country=${country}&state=${state}` : "",
+    });
+  }
+  if (region) {
+    crumbs.push({
+      label: geoLabel(region),
+      href: `/?continent=${continent}&country=${country}&state=${state}&region=${region}`,
+    });
   }
 
   function drillHref(level: "continent" | "country" | "state", value: string) {
@@ -152,6 +165,7 @@ export default async function HomePage({
               continents={continents}
               countries={countries}
               states={states}
+              regions={regions}
               sort={sort}
             />
           </div>
@@ -220,6 +234,25 @@ export default async function HomePage({
         )}
 
         {/* Drill-down: states */}
+        {!error && continent && country && !region && regions.length > 1 && (
+          <section aria-label="Browse by area" className="mb-12">
+            <h2 className="font-display mb-4 text-sm tracking-[0.18em] uppercase opacity-70">
+              Areas in {geoLabel(state ?? "")}
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              {regions.map(({ value, count }) => (
+                <Link
+                  key={value}
+                  href={`/?continent=${continent}&country=${country}&state=${state}&region=${value}`}
+                  className="brutal-chip bg-white px-3 py-2 text-xs font-bold uppercase transition-transform duration-150 hover:-translate-y-0.5"
+                >
+                  {geoLabel(value)} ({count})
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {!error && continent && country && !state && states.length > 1 && (
           <section aria-label="Browse by state or province" className="mb-12">
             <h2 className="font-display mb-4 text-sm tracking-[0.18em] uppercase opacity-70">

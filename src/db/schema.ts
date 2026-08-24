@@ -51,6 +51,7 @@ export const trips = pgTable("trips", {
   continent: text("continent").$type<Continent>(),
   country: text("country"),
   stateProvince: text("state_province"),
+  region: text("region"),
   miles: real("miles").notNull(),
   durationHours: real("duration_hours").notNull(),
   moodTag: text("mood_tag").notNull(),

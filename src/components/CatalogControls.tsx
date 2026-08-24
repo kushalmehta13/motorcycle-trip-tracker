@@ -12,11 +12,13 @@ export default function CatalogControls({
   continents,
   countries,
   states,
+  regions,
   sort,
 }: {
   continents: GeoBucket[];
   countries: GeoBucket[];
   states: GeoBucket[];
+  regions: GeoBucket[];
   sort: TripSort;
 }) {
   const router = useRouter();
@@ -27,9 +29,14 @@ export default function CatalogControls({
       const params = new URLSearchParams(searchParams.toString());
       if (!value) params.delete(key);
       else params.set(key, value);
-      if (key !== "sort") params.delete("country");
-      if (key === "continent" || key === "q" || key === "category")
-        params.delete("state");
+      if (key !== "sort") params.delete("region");
+      if (key !== "sort" && key !== "state") params.delete("state");
+      if (
+        key === "continent" ||
+        key === "q" ||
+        key === "category"
+      )
+        params.delete("country");
       const query = params.toString();
       router.push(query ? `/?${query}` : "/");
     },
@@ -74,6 +81,20 @@ export default function CatalogControls({
       >
         <option value="">All states / provinces</option>
         {states.map(({ value, count }) => (
+          <option key={value} value={value}>
+            {labelize(value)} ({count})
+          </option>
+        ))}
+      </select>
+
+      <select
+        aria-label="Filter by part of state"
+        className={selectClass}
+        value={searchParams.get("region") ?? ""}
+        onChange={(event) => update("region", event.target.value || undefined)}
+      >
+        <option value="">All areas</option>
+        {regions.map(({ value, count }) => (
           <option key={value} value={value}>
             {labelize(value)} ({count})
           </option>

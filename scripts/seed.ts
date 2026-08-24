@@ -9,6 +9,7 @@ import { trips, type NewTrip } from "../src/db/schema";
 const seedTrips: NewTrip[] = [
   {
     slug: "tail-of-the-dragon",
+    region: "graham-county",
     continent: "north-america",
     country: "usa",
     stateProvince: "north-carolina",
@@ -43,6 +44,7 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "big-sur-coast-run",
+    region: "monterey-county",
     continent: "north-america",
     country: "usa",
     stateProvince: "california",
@@ -84,6 +86,7 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "blue-ridge-parkway-south",
+    region: "buncombe-county",
     continent: "north-america",
     country: "usa",
     stateProvince: "north-carolina",
@@ -120,6 +123,7 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "angeles-crest-highway",
+    region: "los-angeles-county",
     continent: "north-america",
     country: "usa",
     stateProvince: "california",
@@ -155,6 +159,7 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "needles-highway-loop",
+    region: "custer-county",
     continent: "north-america",
     country: "usa",
     stateProvince: "south-dakota",
@@ -191,6 +196,7 @@ const seedTrips: NewTrip[] = [
   },
   {
     slug: "passo-dello-stelvio",
+    region: "bolzano",
     continent: "europe",
     country: "italy",
     stateProvince: "south-tyrol",
@@ -243,6 +249,7 @@ async function main() {
         continent: sql`excluded.continent`,
         country: sql`excluded.country`,
         stateProvince: sql`excluded.state_province`,
+        region: sql`excluded.region`,
         route: sql`excluded.route`,
       },
     });

@@ -38,6 +38,7 @@ const tripColumns = {
   continent: trips.continent,
   country: trips.country,
   stateProvince: trips.stateProvince,
+  region: trips.region,
   miles: trips.miles,
   durationHours: trips.durationHours,
   moodTag: trips.moodTag,
@@ -67,6 +68,7 @@ export type TripFilters = {
   continent?: string;
   country?: string;
   state?: string;
+  region?: string;
   category?: string;
   q?: string;
 };
@@ -81,6 +83,9 @@ function filterConditions(filters: TripFilters): SQL[] {
   }
   if (filters.state) {
     conditions.push(eq(trips.stateProvince, filters.state));
+  }
+  if (filters.region) {
+    conditions.push(eq(trips.region, filters.region));
   }
   if (filters.category) {
     conditions.push(eq(trips.category, filters.category as Trip["category"]));
@@ -193,8 +198,13 @@ export async function getTripByCreator(
 }
 
 export async function getGeoBuckets(
-  level: "continent" | "country" | "state",
-  scope: { continent?: string; country?: string; q?: string } = {},
+  level: "continent" | "country" | "state" | "region",
+  scope: {
+    continent?: string;
+    country?: string;
+    state?: string;
+    q?: string;
+  } = {},
 ): Promise<GeoBucket[]> {
   const db = getDb();
 
@@ -203,7 +213,9 @@ export async function getGeoBuckets(
       ? trips.continent
       : level === "country"
         ? trips.country
-        : trips.stateProvince;
+        : level === "state"
+          ? trips.stateProvince
+          : trips.region;
 
   let query = db
     .select({
@@ -219,9 +231,13 @@ export async function getGeoBuckets(
       conditions.push(eq(trips.continent, scope.continent as Continent));
     else conditions.push(sql`${trips.continent} is not null`);
   }
-  if (level === "state") {
+  if (level === "state" || level === "region") {
     if (scope.country) conditions.push(eq(trips.country, scope.country));
     else conditions.push(sql`${trips.country} is not null`);
+  }
+  if (level === "region") {
+    if (scope.state) conditions.push(eq(trips.stateProvince, scope.state));
+    else conditions.push(sql`${trips.stateProvince} is not null`);
   }
   if (scope.q) {
     const pattern = `%${scope.q}%`;

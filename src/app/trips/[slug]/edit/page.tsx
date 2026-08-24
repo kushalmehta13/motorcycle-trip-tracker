@@ -64,6 +64,7 @@ export default async function EditTripPage({
             continent: trip.continent,
             country: trip.country,
             stateProvince: trip.stateProvince,
+            region: trip.region,
             moodTag: trip.moodTag,
             description: trip.description,
             miles: trip.miles,

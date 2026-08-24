@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import type { NamedStop } from "@/db/schema";
+import { COUNTRY_TO_CONTINENT, type DerivedGeo } from "@/lib/routing";
 
 const RoutePreviewMap = dynamic(() => import("./RoutePreviewMap"), {
   ssr: false,
@@ -20,9 +21,12 @@ type SearchResult = {
   name: string;
   lat: number;
   lng: number;
+  geo: DerivedGeo;
 };
 
-function buildLabel(properties: Record<string, string>): { name: string; label: string } {
+function buildResult(
+  properties: Record<string, string>,
+): { name: string; label: string; geo: DerivedGeo } {
   const name = properties.name || properties.street || properties.city || "Unnamed place";
   const parts = [
     properties.name,
@@ -30,15 +34,27 @@ function buildLabel(properties: Record<string, string>): { name: string; label: 
     properties.state,
     properties.country,
   ].filter((part, index, all) => part && part !== name && all.indexOf(part) === index);
-  return { name, label: [name, ...parts].join(", ") };
+
+  const geo: DerivedGeo = {};
+  if (properties.state) geo.stateProvince = properties.state.toLowerCase();
+  if (properties.county) geo.region = properties.county.toLowerCase();
+  else if (properties.city) geo.region = properties.city.toLowerCase();
+  if (properties.country) geo.country = properties.country.toLowerCase();
+  if (COUNTRY_TO_CONTINENT[(properties.countrycode ?? "").toLowerCase()]) {
+    geo.continent = COUNTRY_TO_CONTINENT[(properties.countrycode ?? "").toLowerCase()];
+  }
+
+  return { name, label: [name, ...parts].join(", "), geo };
 }
 
 export default function StopRouteEditor({
   stops,
   onChange,
+  onGeoHint,
 }: {
   stops: NamedStop[];
   onChange: (stops: NamedStop[]) => void;
+  onGeoHint?: (geo: DerivedGeo) => void;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -64,7 +80,7 @@ export default function StopRouteEditor({
       };
       setResults(
         (data.features ?? []).map((feature) => ({
-          ...buildLabel(feature.properties ?? {}),
+          ...buildResult(feature.properties ?? {}),
           lat: feature.geometry.coordinates[1],
           lng: feature.geometry.coordinates[0],
         })),
@@ -82,6 +98,9 @@ export default function StopRouteEditor({
       ...stops,
       { name: result.name.slice(0, 80), lat: result.lat, lng: result.lng },
     ]);
+    if (onGeoHint && Object.keys(result.geo).length > 0) {
+      onGeoHint(result.geo);
+    }
     setQuery("");
     setResults([]);
     setOpen(false);
