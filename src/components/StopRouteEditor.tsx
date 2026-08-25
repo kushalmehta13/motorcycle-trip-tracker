@@ -9,7 +9,11 @@ import {
   parseGpx,
   routeMiles,
 } from "@/lib/gpx";
-import { COUNTRY_TO_CONTINENT, type DerivedGeo } from "@/lib/routing";
+import {
+  COUNTRY_TO_CONTINENT,
+  deriveGeoFromStops,
+  type DerivedGeo,
+} from "@/lib/routing";
 
 const RoutePreviewMap = dynamic(() => import("./RoutePreviewMap"), {
   ssr: false,
@@ -230,6 +234,11 @@ export default function StopRouteEditor({
         importedStops = parsed.waypoints.slice(0, 8);
       } else {
         importedStops = await nameStopsFromRoute(route);
+      }
+
+      const derived = await deriveGeoFromStops(importedStops);
+      if (onGeoHint && Object.keys(derived).length > 0) {
+        onGeoHint(derived);
       }
 
       const rawMiles = routeMiles(route as LatLng[]);
