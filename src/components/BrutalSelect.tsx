@@ -42,6 +42,7 @@ export default function BrutalSelect({
   name,
   size = "compact",
   className = "",
+  placeholder,
 }: {
   options: BrutalSelectOption[];
   value: string;
@@ -51,6 +52,7 @@ export default function BrutalSelect({
   name?: string;
   size?: "compact" | "field";
   className?: string;
+  placeholder?: string;
 }) {
   const selected = useMemo(
     () => options.find((option) => option.value === value),
@@ -64,13 +66,22 @@ export default function BrutalSelect({
 
   return (
     <>
-      <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
+      <SelectPrimitive.Root
+        value={value || undefined}
+        onValueChange={onValueChange}
+      >
         <SelectPrimitive.Trigger
           id={id}
           aria-label={ariaLabel}
           className={`${triggerClass} ${className}`}
         >
-          <span className="truncate">{selected?.label ?? options[0]?.label ?? ""}</span>
+          <span
+            className={`truncate ${!value && placeholder ? "font-medium normal-case tracking-normal text-ink/40" : ""}`}
+          >
+            {value
+              ? (selected?.label ?? "")
+              : (placeholder ?? selected?.label ?? "")}
+          </span>
           <Chevron />
         </SelectPrimitive.Trigger>
 

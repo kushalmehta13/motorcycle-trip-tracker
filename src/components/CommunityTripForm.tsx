@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   CONTINENTS,
+  MOOD_TAGS,
   TRIP_CATEGORIES,
   type LatLng,
   type NamedStop,
@@ -47,7 +48,6 @@ export default function CommunityTripForm({
     stateProvince: string | null;
     moodTag: string;
     description: string;
-    region: string | null;
     miles: number;
     durationHours: number;
     difficulty: number;
@@ -70,11 +70,11 @@ export default function CommunityTripForm({
   );
   const [stateOptions, setStateOptions] = useState<GeoBucket[]>([]);
   const [stateManual, setStateManual] = useState(false);
-  const [region, setRegion] = useState(displayCase(initial?.region));
   const [category, setCategory] = useState<TripCategory>(
     initial?.category ?? "mixed",
   );
   const [difficulty, setDifficulty] = useState(initial?.difficulty ?? 3);
+  const [moodTag, setMoodTag] = useState(initial?.moodTag ?? "");
   const [miles, setMiles] = useState(initial ? String(initial.miles) : "");
   const [duration, setDuration] = useState(
     initial ? String(initial.durationHours) : "",
@@ -133,9 +133,8 @@ export default function CommunityTripForm({
       continent,
       country,
       stateProvince,
-      moodTag: String(form.get("moodTag") ?? ""),
+      moodTag,
       description: String(form.get("description") ?? ""),
-      region,
       bestSeason: String(form.get("bestSeason") ?? ""),
       miles: parsedMiles,
       durationHours: parsedDuration,
@@ -172,9 +171,12 @@ export default function CommunityTripForm({
           }}
           onGeoHint={(hint) => {
             if (hint.continent) setContinent(hint.continent);
-            if (hint.country) setCountry(displayCase(hint.country));
-            if (hint.stateProvince) setStateProvince(displayCase(hint.stateProvince));
-            if (hint.region) setRegion(displayCase(hint.region));
+            if (hint.country) {
+              setCountry(hint.country);
+              setStateOptions([]);
+              setStateManual(false);
+            }
+            if (hint.stateProvince) setStateProvince(hint.stateProvince);
           }}
           overrideRoute={routeOverride}
           onGpxImported={(importedStops, route, estimate) => {
@@ -223,8 +225,15 @@ export default function CommunityTripForm({
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(" "),
             }))}
-            value={continent || CONTINENTS[0]}
-            onValueChange={setContinent}
+            value={continent}
+            placeholder="Pick a continent…"
+            onValueChange={(value) => {
+              setContinent(value);
+              setCountry("");
+              setStateProvince("");
+              setStateOptions([]);
+              setStateManual(false);
+            }}
           />
         </div>
 
@@ -237,17 +246,21 @@ export default function CommunityTripForm({
             name="country"
             size="field"
             ariaLabel="Country"
-            options={COUNTRIES.map((entry) => ({
+            options={COUNTRIES.filter(
+              (entry) => !continent || entry.continent === continent,
+            ).map((entry) => ({
               value: entry.slug,
               label: entry.label,
             }))}
             value={country}
+            placeholder="Pick a country…"
             onValueChange={(slug) => {
               setCountry(slug);
               setStateProvince("");
+              setStateOptions([]);
               setStateManual(false);
               const match = countryBySlug(slug);
-              if (match) setContinent(match.continent);
+              if (match && !continent) setContinent(match.continent);
             }}
           />
         </div>
@@ -300,34 +313,26 @@ export default function CommunityTripForm({
                   value: bucket.value,
                   label: `${displayCase(bucket.value)} (${bucket.count})`,
                 })),
-                { value: "__manual__", label: "Other — type it…" },
               ]}
-              value={stateManual ? "__manual__" : stateProvince || "__manual__"}
-              onValueChange={(value) => {
-                if (value === "__manual__") {
-                  setStateManual(true);
-                } else {
-                  setStateManual(false);
-                  setStateProvince(value);
-                }
-              }}
+              value={stateManual ? "" : stateProvince}
+              placeholder="Pick or auto-detected…"
+              onValueChange={(value) => setStateProvince(value)}
             />
           )}
-        </div>
-
-        <div>
-          <label htmlFor="region" className={labelClass}>
-            Part of state
-          </label>
-          <input
-            id="region"
-            name="region"
-            className={inputClass}
-            placeholder="County or area"
-            maxLength={40}
-            value={region}
-            onChange={(event) => setRegion(event.target.value)}
-          />
+          {country && (
+            <button
+              type="button"
+              onClick={() => {
+                if (!stateManual && stateProvince === "") setStateProvince("");
+                setStateManual(!stateManual);
+              }}
+              className="mt-1.5 block text-[10px] font-bold tracking-widest uppercase opacity-50 transition-opacity hover:opacity-100"
+            >
+              {stateManual
+                ? "← Pick from list"
+                : "Not listed? Type it manually"}
+            </button>
+          )}
         </div>
 
         <div>
@@ -351,13 +356,21 @@ export default function CommunityTripForm({
           <label htmlFor="moodTag" className={labelClass}>
             Mood tag *
           </label>
-          <input
+          <BrutalSelect
             id="moodTag"
             name="moodTag"
-            className={inputClass}
-            placeholder="Twisty & Technical"
-            maxLength={30}
-            defaultValue={initial?.moodTag ?? ""}
+            size="field"
+            ariaLabel="Mood tag"
+            options={[
+              ...MOOD_TAGS.map((tag) => ({ value: tag, label: tag })),
+              ...(initial?.moodTag &&
+              !MOOD_TAGS.includes(initial.moodTag as never)
+                ? [{ value: initial.moodTag, label: initial.moodTag }]
+                : []),
+            ]}
+            value={moodTag}
+            placeholder="Pick a vibe…"
+            onValueChange={setMoodTag}
           />
         </div>
 

@@ -11,6 +11,21 @@ import {
 
 export type LatLng = [number, number];
 
+export const MOOD_TAGS = [
+  "Twisty & Technical",
+  "Coastal Cruise",
+  "Scenic Chill",
+  "High Desert Sweepers",
+  "Mountain Passes",
+  "Hairpin Heaven",
+  "Forest Glide",
+  "Long Haul Highway",
+  "Off-Road Adventure",
+  "Sunset Cruiser",
+] as const;
+
+export type MoodTag = (typeof MOOD_TAGS)[number];
+
 export const TRIP_CATEGORIES = [
   "mountain",
   "coastal",
