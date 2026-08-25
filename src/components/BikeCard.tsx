@@ -23,7 +23,7 @@ export default function BikeCard({ bike }: { bike: Bike }) {
 
       <div className="flex grow flex-col gap-3 p-5">
         <span
-          className="brutal-chip -rotate-1 self-start px-2 py-1 text-[11px] font-bold tracking-widest uppercase"
+          className="brutal-chip self-start px-2 py-1 text-[11px] font-bold tracking-widest uppercase"
           style={{ backgroundColor: accent }}
         >
           {bikeTypeLabel(bike.type)}

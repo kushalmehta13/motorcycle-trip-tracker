@@ -46,13 +46,13 @@ export default function TripDetail({
     <article>
       <div className="flex flex-wrap items-center gap-2 px-5 pt-5 sm:px-7">
         <span
-          className="brutal-chip -rotate-1 px-2 py-1 text-[11px] font-bold tracking-widest uppercase"
+          className="brutal-chip px-2 py-1 text-[11px] font-bold tracking-widest uppercase"
           style={{ backgroundColor: accent }}
         >
           {trip.moodTag}
         </span>
         {trip.bestSeason && (
-          <span className="brutal-chip rotate-1 bg-white px-2 py-1 text-[11px] font-bold tracking-widest uppercase">
+          <span className="brutal-chip bg-white px-2 py-1 text-[11px] font-bold tracking-widest uppercase">
             Best · {trip.bestSeason}
           </span>
         )}
@@ -61,7 +61,7 @@ export default function TripDetail({
       <h2 className="font-display px-5 pt-4 text-2xl leading-tight uppercase sm:px-7 sm:text-3xl">
         {trip.name}
         {trip.outdatedAt && (
-          <span className="brutal-chip ml-3 inline-block rotate-1 bg-accent-orange px-2 py-1 align-middle text-[10px] tracking-widest">
+          <span className="brutal-chip ml-3 inline-block bg-accent-orange px-2 py-1 align-middle text-[10px] tracking-widest">
             Outdated report
           </span>
         )}

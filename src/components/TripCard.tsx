@@ -38,12 +38,12 @@ export default function TripCard({ trip }: { trip: TripWithRating }) {
       <div className="flex grow flex-col gap-3 p-5">
         <div className="flex flex-wrap items-center gap-2">
           <span
-            className="brutal-chip -rotate-1 px-2 py-1 text-[11px] font-bold tracking-widest uppercase"
+            className="brutal-chip px-2 py-1 text-[11px] font-bold tracking-widest uppercase"
             style={{ backgroundColor: accent }}
           >
             {trip.moodTag}
           </span>
-          <span className="rotate-1 border-2 border-ink bg-paper px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase opacity-80">
+          <span className=" border-2 border-ink bg-paper px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase opacity-80">
             {categoryLabel(trip.category)}
           </span>
         </div>

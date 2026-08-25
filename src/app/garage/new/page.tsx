@@ -24,7 +24,7 @@ export default function NewBikePage() {
 
         <h1 className="font-display mt-4 mb-8 text-3xl leading-tight uppercase sm:text-5xl">
           New{" "}
-          <span className="brutal-chip inline-block -rotate-1 bg-accent-purple px-3 py-1 text-paper">
+          <span className="brutal-chip inline-block bg-accent-purple px-3 py-1 text-paper">
             machine
           </span>
         </h1>

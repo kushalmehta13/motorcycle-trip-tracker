@@ -9,7 +9,7 @@ export default function SignInPage() {
     <div className="flex min-h-screen flex-col">
       <div className="mx-auto w-full max-w-md grow px-4 pt-16 pb-20 sm:pt-24">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2.5">
-          <span className="brutal-chip inline-block -rotate-2 bg-accent-yellow px-2 py-1 font-display text-base leading-none">
+          <span className="brutal-chip inline-block bg-accent-yellow px-2 py-1 font-display text-base leading-none">
             MOTO
           </span>
           <span className="font-display text-lg tracking-tight">TRACKER</span>
@@ -17,7 +17,7 @@ export default function SignInPage() {
 
         <h1 className="font-display mb-8 text-center text-3xl uppercase sm:text-4xl">
           Welcome{" "}
-          <span className="brutal-chip inline-block -rotate-1 bg-accent-pink px-3 py-0.5 text-paper">
+          <span className="brutal-chip inline-block bg-accent-pink px-3 py-0.5 text-paper">
             back
           </span>
         </h1>

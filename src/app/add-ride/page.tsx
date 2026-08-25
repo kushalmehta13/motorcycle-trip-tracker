@@ -31,7 +31,7 @@ export default async function AddRidePage() {
 
         <h1 className="font-display mt-4 mb-3 text-3xl leading-tight uppercase sm:text-5xl">
           Share a{" "}
-          <span className="brutal-chip inline-block -rotate-1 bg-accent-yellow px-3 py-0.5 text-paper">
+          <span className="brutal-chip inline-block bg-accent-yellow px-3 py-0.5 text-paper">
             ride
           </span>
         </h1>

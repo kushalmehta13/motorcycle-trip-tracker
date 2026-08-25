@@ -48,7 +48,7 @@ export default async function GaragePage() {
         <section className="mb-12">
           <h1 className="font-display text-4xl leading-[1.02] uppercase sm:text-6xl">
             The{" "}
-            <span className="brutal-chip inline-block -rotate-1 bg-accent-teal px-3 py-1 text-paper">
+            <span className="brutal-chip inline-block bg-accent-teal px-3 py-1 text-paper">
               garage
             </span>
           </h1>
@@ -102,7 +102,7 @@ export default async function GaragePage() {
         >
           <h2 className="font-display text-2xl uppercase sm:text-3xl">
             Your{" "}
-            <span className="brutal-chip inline-block -rotate-1 bg-accent-yellow px-3 py-0.5">
+            <span className="brutal-chip inline-block bg-accent-yellow px-3 py-0.5">
               rides
             </span>
           </h2>
@@ -165,7 +165,7 @@ export default async function GaragePage() {
         <section aria-label="Saved trips" className="mt-16">
           <h2 className="font-display text-2xl uppercase sm:text-3xl">
             Trips to{" "}
-            <span className="brutal-chip inline-block -rotate-1 bg-accent-pink px-3 py-0.5 text-paper">
+            <span className="brutal-chip inline-block bg-accent-pink px-3 py-0.5 text-paper">
               ride
             </span>
           </h2>

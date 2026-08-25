@@ -103,7 +103,7 @@ export default async function HomePage({
         <section className="mb-8">
           <h1 className="font-display text-4xl leading-[1.02] uppercase sm:text-6xl">
             Ride{" "}
-            <span className="brutal-chip inline-block -rotate-1 bg-accent-pink px-3 py-1 text-paper">
+            <span className="brutal-chip inline-block bg-accent-pink px-3 py-1 text-paper">
               atlas
             </span>
           </h1>
@@ -133,7 +133,7 @@ export default async function HomePage({
 
               <Link
                 href="/add-ride"
-                className="brutal-chip inline-block -rotate-1 bg-accent-teal px-4 py-2 font-display text-sm tracking-widest uppercase text-paper transition-transform duration-150 hover:-translate-y-0.5"
+                className="brutal-chip inline-block bg-accent-teal px-4 py-2 font-display text-sm tracking-widest uppercase text-paper transition-transform duration-150 hover:-translate-y-0.5"
               >
                 + Share a ride
               </Link>

@@ -46,7 +46,7 @@ export default async function EditTripPage({
 
         <h1 className="font-display mt-4 mb-8 text-3xl leading-tight uppercase sm:text-5xl">
           Edit{" "}
-          <span className="brutal-chip inline-block -rotate-1 bg-accent-teal px-3 py-0.5 text-paper">
+          <span className="brutal-chip inline-block bg-accent-teal px-3 py-0.5 text-paper">
             ride
           </span>
         </h1>
