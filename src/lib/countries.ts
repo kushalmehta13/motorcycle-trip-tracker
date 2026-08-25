@@ -156,7 +156,7 @@ export const COUNTRIES: CountryEntry[] = RAW.map(([slug, label, continent]) => (
   slug,
   label,
   continent,
-}));
+})).sort((a, b) => a.label.localeCompare(b.label));
 
 const ALIASES: Record<string, string> = {
   "united-states": "usa",

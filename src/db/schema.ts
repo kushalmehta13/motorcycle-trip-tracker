@@ -12,28 +12,28 @@ import {
 export type LatLng = [number, number];
 
 export const MOOD_TAGS = [
-  "Twisty & Technical",
   "Coastal Cruise",
-  "Scenic Chill",
-  "High Desert Sweepers",
-  "Mountain Passes",
-  "Hairpin Heaven",
   "Forest Glide",
+  "Hairpin Heaven",
+  "High Desert Sweepers",
   "Long Haul Highway",
+  "Mountain Passes",
   "Off-Road Adventure",
+  "Scenic Chill",
   "Sunset Cruiser",
-] as const;
+  "Twisty & Technical",
+] as const;;
 
 export type MoodTag = (typeof MOOD_TAGS)[number];
 
 export const TRIP_CATEGORIES = [
-  "mountain",
+  "canyon",
   "coastal",
   "desert",
   "forest",
-  "canyon",
   "mixed",
-] as const;
+  "mountain",
+] as const;;
 
 export type TripCategory = (typeof TRIP_CATEGORIES)[number];
 
@@ -44,13 +44,13 @@ export type NamedStop = {
 };
 
 export const CONTINENTS = [
-  "north-america",
-  "south-america",
-  "europe",
-  "asia",
   "africa",
+  "asia",
+  "europe",
+  "north-america",
   "oceania",
-] as const;
+  "south-america",
+] as const;;
 
 export type Continent = (typeof CONTINENTS)[number];
 
@@ -85,14 +85,14 @@ export type Trip = typeof trips.$inferSelect;
 export type NewTrip = typeof trips.$inferInsert;
 
 export const BIKE_TYPES = [
-  "sport",
-  "cruiser",
-  "touring",
   "adventure",
-  "standard",
+  "cruiser",
   "scooter",
+  "sport",
+  "standard",
+  "touring",
   "track",
-] as const;
+] as const;;
 
 export type BikeType = (typeof BIKE_TYPES)[number];
 

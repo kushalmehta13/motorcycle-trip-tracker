@@ -253,7 +253,7 @@ export async function getGeoBuckets(
   return rows
     .filter((row): row is { value: string; count: number } => Boolean(row.value))
     .map((row) => ({ value: row.value as string, count: Number(row.count) }))
-    .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
+    .sort((a, b) => a.value.localeCompare(b.value));
 }
 
 export function accentForTag(tag: string): string {
