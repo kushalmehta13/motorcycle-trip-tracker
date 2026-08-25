@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CONTINENTS,
   TRIP_CATEGORIES,
@@ -9,6 +9,12 @@ import {
   type NamedStop,
   type TripCategory,
 } from "@/db/schema";
+import {
+  COUNTRIES,
+  countryBySlug,
+  normalizeCountrySlug,
+} from "@/lib/countries";
+import type { GeoBucket } from "@/lib/trips";
 import { createTripAction, updateTripAction } from "@/app/trips/actions";
 import StopRouteEditor from "./StopRouteEditor";
 import BrutalSelect from "./BrutalSelect";
@@ -56,8 +62,14 @@ export default function CommunityTripForm({
     initial?.route ?? null,
   );
   const [continent, setContinent] = useState(initial?.continent ?? "");
-  const [country, setCountry] = useState(displayCase(initial?.country));
-  const [stateProvince, setStateProvince] = useState(displayCase(initial?.stateProvince));
+  const [country, setCountry] = useState(
+    normalizeCountrySlug(initial?.country ?? ""),
+  );
+  const [stateProvince, setStateProvince] = useState(
+    initial?.stateProvince ?? "",
+  );
+  const [stateOptions, setStateOptions] = useState<GeoBucket[]>([]);
+  const [stateManual, setStateManual] = useState(false);
   const [region, setRegion] = useState(displayCase(initial?.region));
   const [category, setCategory] = useState<TripCategory>(
     initial?.category ?? "mixed",
@@ -69,6 +81,29 @@ export default function CommunityTripForm({
   );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadStates() {
+      if (!country || country === "__pick__") {
+        setStateOptions([]);
+        return;
+      }
+      try {
+        const response = await fetch(`/api/geo/states?country=${country}`);
+        const data = (await response.json()) as { states?: GeoBucket[] };
+        if (!cancelled) setStateOptions(data.states ?? []);
+      } catch {
+        if (!cancelled) setStateOptions([]);
+      }
+    }
+
+    void loadStates();
+    return () => {
+      cancelled = true;
+    };
+  }, [country]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -197,30 +232,87 @@ export default function CommunityTripForm({
           <label htmlFor="country" className={labelClass}>
             Country *
           </label>
-          <input
+          <BrutalSelect
             id="country"
             name="country"
-            className={inputClass}
-            placeholder="USA"
-            maxLength={40}
+            size="field"
+            ariaLabel="Country"
+            options={COUNTRIES.map((entry) => ({
+              value: entry.slug,
+              label: entry.label,
+            }))}
             value={country}
-            onChange={(event) => setCountry(event.target.value)}
+            onValueChange={(slug) => {
+              setCountry(slug);
+              setStateProvince("");
+              setStateManual(false);
+              const match = countryBySlug(slug);
+              if (match) setContinent(match.continent);
+            }}
           />
         </div>
 
         <div className="sm:col-span-2">
-          <label htmlFor="stateProvince" className={labelClass}>
-            State / province
-          </label>
-          <input
-            id="stateProvince"
-            name="stateProvince"
-            className={inputClass}
-            placeholder="Auto-detected from your stops"
-            maxLength={40}
-            value={stateProvince}
-            onChange={(event) => setStateProvince(event.target.value)}
-          />
+          <span className={labelClass}>State / province</span>
+          {stateManual ? (
+            <div className="flex items-center gap-2">
+              <input
+                id="stateProvince"
+                name="stateProvince"
+                className={inputClass}
+                placeholder="e.g. Washington"
+                maxLength={40}
+                value={stateProvince ? displayCase(stateProvince) : ""}
+                onChange={(event) =>
+                  setStateProvince(event.target.value
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-"))
+                }
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setStateManual(false);
+                  setStateProvince("");
+                }}
+                className="brutal-chip shrink-0 cursor-pointer bg-white px-2 py-1.5 text-[10px] font-bold uppercase"
+              >
+                List
+              </button>
+            </div>
+          ) : (
+            <BrutalSelect
+              id="stateProvince"
+              name="stateProvince"
+              size="field"
+              ariaLabel="State or province"
+              options={[
+                ...(stateProvince &&
+                !stateOptions.some((bucket) => bucket.value === stateProvince)
+                  ? [
+                      {
+                        value: stateProvince,
+                        label: displayCase(stateProvince),
+                      },
+                    ]
+                  : []),
+                ...stateOptions.map((bucket) => ({
+                  value: bucket.value,
+                  label: `${displayCase(bucket.value)} (${bucket.count})`,
+                })),
+                { value: "__manual__", label: "Other — type it…" },
+              ]}
+              value={stateManual ? "__manual__" : stateProvince || "__manual__"}
+              onValueChange={(value) => {
+                if (value === "__manual__") {
+                  setStateManual(true);
+                } else {
+                  setStateManual(false);
+                  setStateProvince(value);
+                }
+              }}
+            />
+          )}
         </div>
 
         <div>

@@ -20,6 +20,7 @@ import {
 } from "@/db/schema";
 import { getDb } from "@/db";
 import { createTrip } from "@/lib/create-trip";
+import { countryBySlug, normalizeCountrySlug } from "@/lib/countries";
 import { deriveGeoFromStops, routeFromStops } from "@/lib/routing";
 
 export type ActionResult<T = undefined> =
@@ -141,10 +142,12 @@ export async function createTripAction(
       ? { route: input.route }
       : await routeFromStops(stops);
 
-  const continent = input.continent?.trim()
-    ? (slugifyGeo(input.continent) as Continent)
+  let country = input.country?.trim()
+    ? normalizeCountrySlug(input.country)
     : undefined;
-  let country = input.country?.trim() ? slugifyGeo(input.country) : undefined;
+  let continent = (input.continent?.trim()
+    ? (slugifyGeo(input.continent) as Continent)
+    : undefined) ?? countryBySlug(country ?? "")?.continent;
   let stateProvince = input.stateProvince?.trim()
     ? slugifyGeo(input.stateProvince)
     : null;
@@ -152,9 +155,10 @@ export async function createTripAction(
 
   if (!continent || !country || !stateProvince) {
     const derived = await deriveGeoFromStops(stops);
+    continent =
+      (continent ?? (derived.continent as Continent | undefined)) ?? undefined;
     country = country ?? derived.country;
-    stateProvince =
-      stateProvince ?? derived.stateProvince ?? null;
+    stateProvince = stateProvince ?? derived.stateProvince ?? null;
     region = region ?? derived.region ?? null;
   }
 
@@ -209,10 +213,12 @@ export async function updateTripAction(
       ? { route: input.route }
       : await routeFromStops(stops);
 
-  let continent = input.continent?.trim()
-    ? (slugifyGeo(input.continent) as Continent)
+  let country = input.country?.trim()
+    ? normalizeCountrySlug(input.country)
     : undefined;
-  let country = input.country?.trim() ? slugifyGeo(input.country) : undefined;
+  let continent = (input.continent?.trim()
+    ? (slugifyGeo(input.continent) as Continent)
+    : undefined) ?? countryBySlug(country ?? "")?.continent;
   let stateProvince = input.stateProvince?.trim()
     ? slugifyGeo(input.stateProvince)
     : null;
@@ -220,7 +226,8 @@ export async function updateTripAction(
 
   if (!continent || !country || !stateProvince) {
     const derived = await deriveGeoFromStops(stops);
-    continent = (continent ?? derived.continent) as Continent | undefined;
+    continent =
+      (continent ?? (derived.continent as Continent | undefined)) ?? undefined;
     country = country ?? derived.country;
     stateProvince = stateProvince ?? derived.stateProvince ?? null;
     region = region ?? derived.region ?? null;
