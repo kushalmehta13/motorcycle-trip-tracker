@@ -22,11 +22,17 @@ export default function SignUpPage() {
           </span>
         </h1>
 
-        <SignUp
-          signInUrl="/sign-in"
-          forceRedirectUrl="/garage"
-          appearance={clerkAppearance}
-        />
+        <div className="brutal-card bg-white p-5 sm:p-7">
+          <SignUp
+            signInUrl="/sign-in"
+            forceRedirectUrl="/garage"
+            appearance={clerkAppearance}
+          />
+        </div>
+
+        <p className="mt-6 text-center text-xs font-bold tracking-[0.18em] uppercase opacity-50">
+          Ride far. Record everything.
+        </p>
       </div>
     </div>
   );
