@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getGeoBuckets } from "@/lib/trips";
+import { getReferenceStates } from "@/lib/geo-data";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +12,15 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({ states: [] });
   }
 
+  const reference = getReferenceStates(country);
+
   try {
-    const states = await getGeoBuckets("state", { country });
-    return NextResponse.json({ states });
+    const buckets = await getGeoBuckets("state", { country });
+    const merged = new Set([...reference, ...buckets.map((b) => b.value)]);
+    return NextResponse.json({
+      states: [...merged].sort((a, b) => a.localeCompare(b)),
+    });
   } catch {
-    return NextResponse.json({ states: [] });
+    return NextResponse.json({ states: reference });
   }
 }

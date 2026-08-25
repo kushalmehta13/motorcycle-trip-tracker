@@ -15,7 +15,6 @@ import {
   countryBySlug,
   normalizeCountrySlug,
 } from "@/lib/countries";
-import type { GeoBucket } from "@/lib/trips";
 import { createTripAction, updateTripAction } from "@/app/trips/actions";
 import StopRouteEditor from "./StopRouteEditor";
 import BrutalSelect from "./BrutalSelect";
@@ -68,7 +67,7 @@ export default function CommunityTripForm({
   const [stateProvince, setStateProvince] = useState(
     initial?.stateProvince ?? "",
   );
-  const [stateOptions, setStateOptions] = useState<GeoBucket[]>([]);
+  const [stateOptions, setStateOptions] = useState<string[]>([]);
   const [stateManual, setStateManual] = useState(false);
   const [category, setCategory] = useState<TripCategory>(
     initial?.category ?? "mixed",
@@ -92,7 +91,7 @@ export default function CommunityTripForm({
       }
       try {
         const response = await fetch(`/api/geo/states?country=${country}`);
-        const data = (await response.json()) as { states?: GeoBucket[] };
+        const data = (await response.json()) as { states?: string[] };
         if (!cancelled) setStateOptions(data.states ?? []);
       } catch {
         if (!cancelled) setStateOptions([]);
@@ -299,21 +298,10 @@ export default function CommunityTripForm({
               name="stateProvince"
               size="field"
               ariaLabel="State or province"
-              options={[
-                ...(stateProvince &&
-                !stateOptions.some((bucket) => bucket.value === stateProvince)
-                  ? [
-                      {
-                        value: stateProvince,
-                        label: displayCase(stateProvince),
-                      },
-                    ]
-                  : []),
-                ...stateOptions.map((bucket) => ({
-                  value: bucket.value,
-                  label: `${displayCase(bucket.value)} (${bucket.count})`,
-                })),
-              ]}
+              options={stateOptions.map((value) => ({
+                value,
+                label: displayCase(value),
+              }))}
               value={stateManual ? "" : stateProvince}
               placeholder="Pick or auto-detected…"
               onValueChange={(value) => setStateProvince(value)}

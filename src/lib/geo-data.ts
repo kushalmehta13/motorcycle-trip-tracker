@@ -1,0 +1,168 @@
+export const STATES_BY_COUNTRY: Record<string, string[]> = {
+  usa: [
+    "alabama", "alaska", "arizona", "arkansas", "california", "colorado",
+    "connecticut", "delaware", "district-of-columbia", "florida", "georgia",
+    "hawaii", "idaho", "illinois", "indiana", "iowa", "kansas", "kentucky",
+    "louisiana", "maine", "maryland", "massachusetts", "michigan",
+    "minnesota", "mississippi", "missouri", "montana", "nebraska", "nevada",
+    "new-hampshire", "new-jersey", "new-mexico", "new-york",
+    "north-carolina", "north-dakota", "ohio", "oklahoma", "oregon",
+    "pennsylvania", "rhode-island", "south-carolina", "south-dakota",
+    "tennessee", "texas", "utah", "vermont", "virginia", "washington",
+    "west-virginia", "wisconsin", "wyoming",
+  ],
+  canada: [
+    "alberta", "british-columbia", "manitoba", "new-brunswick",
+    "newfoundland-and-labrador", "northwest-territories", "nova-scotia",
+    "nunavut", "ontario", "prince-edward-island", "quebec", "saskatchewan",
+    "yukon",
+  ],
+  australia: [
+    "australian-capital-territory", "new-south-wales",
+    "northern-territory", "queensland", "south-australia", "tasmania",
+    "victoria", "western-australia",
+  ],
+  "united-kingdom": ["england", "northern-ireland", "scotland", "wales"],
+  ireland: ["connacht", "leinster", "munster", "ulster"],
+  germany: [
+    "baden-wurttemberg", "bavaria", "berlin", "brandenburg", "bremen",
+    "hamburg", "hesse", "lower-saxony", "mecklenburg-vorpommern",
+    "north-rhine-westphalia", "rhineland-palatinate", "saarland", "saxony",
+    "saxony-anhalt", "schleswig-holstein", "thuringia",
+  ],
+  austria: [
+    "burgenland", "carinthia", "lower-austria", "salzburg", "styria",
+    "tyrol", "upper-austria", "vienna", "vorarlberg",
+  ],
+  switzerland: [
+    "aargau", "appenzell-ausserrhoden", "appenzell-innerrhoden",
+    "basel-landschaft", "basel-stadt", "bern", "fribourg", "geneva",
+    "glarus", "graubunden", "jura", "lucerne", "neuchatel", "nidwalden",
+    "obwalden", "schaffhausen", "schwyz", "solothurn", "st-gallen",
+    "thurgau", "ticino", "uri", "valais", "vaud", "zug", "zurich",
+  ],
+  italy: [
+    "abruzzo", "basilicata", "bolzano", "calabria", "campania",
+    "emilia-romagna", "friuli-venezia-giulia", "lazio", "liguria",
+    "lombardy", "marche", "molise", "piedmont", "puglia", "sardinia",
+    "sicily", "south-tyrol", "trentino-alto-adige", "tuscany", "umbria",
+    "valle-d-aosta", "veneto",
+  ],
+  france: [
+    "auvergne-rhone-alpes", "bourgogne-franche-comte", "brittany",
+    "centre-val-de-loire", "corsica", "grand-est", "hauts-de-france",
+    "ile-de-france", "normandy", "nouvelle-aquitaine", "occitanie",
+    "pays-de-la-loire", "provence-alpes-cote-d-azur",
+  ],
+  spain: [
+    "andalusia", "aragon", "asturias", "basque-country", "canary-islands",
+    "cantabria", "castile-and-leon", "castile-la-mancha", "catalonia",
+    "extremadura", "galicia", "la-rioja", "madrid", "murcia", "navarre",
+    "valencia",
+  ],
+  portugal: [
+    "alentejo", "algarve", "azores", "centro", "lisbon", "madeira", "norte",
+  ],
+  netherlands: [
+    "drenthe", "flevoland", "friesland", "gelderland", "groningen",
+    "limburg", "north-brabant", "north-holland", "overijssel",
+    "south-holland", "utrecht", "zeeland",
+  ],
+  belgium: ["brussels", "flanders", "wallonia"],
+  norway: [
+    "agder", "buskerud", "finnmark", "innlandet", "more-og-romsdal",
+    "nordland", "oslo", "rogaland", "telemark", "troms", "trondelag",
+    "vestfold", "vestland", "ostfold",
+  ],
+  sweden: [
+    "blekinge", "dalarna", "gavleborg", "gotland", "halland", "jamtland",
+    "jonkoping", "kalmar", "kronoberg", "norrbotten", "orebro", "oslo",
+    "skane", "sodermanland", "stockholm", "uppsala", "varmland",
+    "vasterbotten", "vasternorrland", "vastmanland", "vastra-gotaland",
+  ],
+  finland: [
+    "etela-karjala", "etela-pohjanmaa", "etela-savo", "kainuu",
+    "keski-pohjanmaa", "keski-suomi", "kymenlaakso", "lappi",
+    "paijat-hame", "pirkanmaa", "pohjois-karjala", "pohjois-savo",
+    "pohjois-pohjanmaa", "pohjanmaa", "satakunta", "uusimaa",
+    "varsinais-suomi",
+  ],
+  poland: [
+    "dolnoslaskie", "kujawsko-pomorskie", "lubelskie", "lubuskie",
+    "lodzkie", "malopolskie", "mazowieckie", "opolskie", "podkarpackie",
+    "podlaskie", "pomorskie", "slaskie", "swietokrzyskie",
+    "warminsko-mazurskie", "wielkopolskie", "zachodniopomorskie",
+  ],
+  czechia: [
+    "central-bohemian", "hradec-kralove", "karlovy-vary", "liberec",
+    "moravian-silesian", "olomouc", "pardubice", "plzen", "prague",
+    "south-bohemian", "south-moravian", "usti-nad-labem", "vysocina",
+    "zlin",
+  ],
+  japan: [
+    "aichi", "akita", "aomori", "chiba", "ehime", "fukui", "fukuoka",
+    "fukushima", "gifu", "gunma", "hiroshima", "hokkaido", "hyogo",
+    "ibaraki", "ishikawa", "iwate", "kagawa", "kagoshima", "kanagawa",
+    "kochi", "kumamoto", "kyoto", "mie", "miyagi", "miyazaki", "nagano",
+    "nagasaki", "nara", "niigata", "oita", "okayama", "okinawa", "osaka",
+    "saga", "saitama", "shiga", "shimane", "shizuoka", "tochigi",
+    "tokushima", "tokyo", "tottori", "toyama", "wakayama", "yamagata",
+    "yamaguchi", "yamanashi",
+  ],
+  india: [
+    "andaman-and-nicobar-islands", "andhra-pradesh", "arunachal-pradesh",
+    "assam", "bihar", "chandigarh", "chhattisgarh", "delhi", "goa",
+    "gujarat", "haryana", "himachal-pradesh", "jammu-and-kashmir",
+    "jharkhand", "karnataka", "kerala", "ladakh", "lakshadweep",
+    "madhya-pradesh", "maharashtra", "manipur", "meghalaya", "mizoram",
+    "nagaland", "odisha", "puducherry", "punjab", "rajasthan", "sikkim",
+    "tamil-nadu", "telangana", "tripura", "uttar-pradesh", "uttarakhand",
+    "west-bengal",
+  ],
+  brazil: [
+    "acre", "alagoas", "amapa", "amazonas", "bahia", "ceara",
+    "distrito-federal", "espirito-santo", "goias", "maranhao",
+    "mato-grosso", "mato-grosso-do-sul", "minas-gerais", "para",
+    "paraiba", "parana", "pernambuco", "piaui", "rio-de-janeiro",
+    "rio-grande-do-norte", "rio-grande-do-sul", "rondonia", "roraima",
+    "santa-catarina", "sao-paulo", "sergipe", "tocantins",
+  ],
+  mexico: [
+    "aguascalientes", "baja-california", "baja-california-sur",
+    "campeche", "chiapas", "chihuahua", "coahuila", "colima", "durango",
+    "guanajuato", "guerrero", "hidalgo", "jalisco", "Mexico-city",
+    "michoacan", "morelos", "nayarit", "nuevo-leon", "oaxaca", "puebla",
+    "queretaro", "quintana-roo", "san-luis-potosi", "sinaloa", "sonora",
+    "tabasco", "tamaulipas", "tlaxcala", "veracruz", "yucatan",
+    "zacatecas",
+  ],
+  argentina: [
+    "buenos-aires", "catamarca", "chaco", "chubut", "cordoba",
+    "corrientes", "entre-rios", "formosa", "jujuy", "la-pampa",
+    "la-rioja", "mendoza", "misiones", "neuquen", "rio-negro", "salta",
+    "san-juan", "san-luis", "santa-cruz", "santa-fe",
+    "santiago-del-estero", "tierra-del-fuego", "tucuman",
+  ],
+  chile: [
+    "antarctica", "araucania", "arica-y-parinacota", "atacama",
+    "aysen", "biobio", "coquimbo", "los-lagos", "los-rios", "magallanes",
+    "maule", "nuble", "o'higgins", "santiago-metropolitan", "tarapaca",
+    "valparaiso",
+  ],
+  "south-africa": [
+    "eastern-cape", "free-state", "gauteng", "kwazulu-natal", "limpopo",
+    "mpumalanga", "north-west", "northern-cape", "western-cape",
+  ],
+  "new-zealand": [
+    "auckland", "bay-of-plenty", "canterbury", "gisborne", "hawkes-bay",
+    "manawatu-whanganui", "marlborough", "nelson", "northland", "otago",
+    "southland", "taranaki", "tasman", "waikato", "wellington",
+    "west-coast",
+  ],
+};
+
+export function getReferenceStates(countrySlug: string): string[] {
+  const states = STATES_BY_COUNTRY[countrySlug];
+  if (!states) return [];
+  return [...states].sort((a, b) => a.localeCompare(b));
+}
