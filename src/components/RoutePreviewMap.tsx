@@ -1,8 +1,31 @@
 "use client";
 
-import { Polyline, MapContainer, CircleMarker, TileLayer } from "react-leaflet";
+import { useEffect } from "react";
+import {
+  Polyline,
+  MapContainer,
+  CircleMarker,
+  TileLayer,
+  useMap,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { latLngBounds } from "leaflet";
 import type { NamedStop } from "@/db/schema";
+
+function AutoFit({ route }: { route: [number, number][] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (route.length >= 2) {
+      map.fitBounds(latLngBounds(route), {
+        padding: [24, 24],
+        animate: true,
+      });
+    }
+  }, [map, route]);
+
+  return null;
+}
 
 export default function RoutePreviewMap({
   route,
@@ -48,6 +71,7 @@ export default function RoutePreviewMap({
           }}
         />
       ))}
+      <AutoFit route={route} />
     </MapContainer>
   );
 }
