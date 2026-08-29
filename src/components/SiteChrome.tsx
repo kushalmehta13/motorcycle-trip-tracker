@@ -77,6 +77,14 @@ export function SiteFooter() {
     <footer className="border-t-4 border-ink bg-ink text-paper">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-6 text-[11px] font-bold tracking-[0.18em] uppercase sm:px-6">
         <span>RIDE COLLECTIVE © 2026</span>
+        <a
+          href="https://github.com/kushalmehta13/motorcycle-trip-tracker"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="opacity-80 transition-opacity hover:opacity-100"
+        >
+          Source · MIT
+        </a>
         <span className="opacity-70">Built for the long way home</span>
       </div>
     </footer>
