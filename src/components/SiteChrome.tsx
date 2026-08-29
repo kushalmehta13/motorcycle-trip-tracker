@@ -14,9 +14,9 @@ export async function SiteHeader({
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5">
           <span className="brutal-chip inline-block bg-accent-yellow px-2 py-1 font-display text-base leading-none">
-            MOTO
+            RIDE
           </span>
-          <span className="font-display text-lg tracking-tight">TRACKER</span>
+          <span className="font-display text-lg tracking-tight">COLLECTIVE</span>
         </Link>
 
         <div className="flex items-center gap-5">
@@ -77,7 +77,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t-4 border-ink bg-ink text-paper">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-6 text-[11px] font-bold tracking-[0.18em] uppercase sm:px-6">
-        <span>MOTO.TRACKER © 2026</span>
+        <span>RIDE COLLECTIVE © 2026</span>
         <span className="opacity-70">Built for the long way home</span>
       </div>
     </footer>

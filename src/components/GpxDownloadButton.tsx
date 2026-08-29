@@ -24,7 +24,7 @@ export default function GpxDownloadButton({
 
     const safeName = escapeXml(name);
     const gpx = `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="MOTO.TRACKER" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="Ride Collective" xmlns="http://www.topografix.com/GPX/1/1">
   <metadata>
     <name>${safeName}</name>
   </metadata>

@@ -16,7 +16,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Garage — MOTO.TRACKER",
+  title: "Garage — Ride Collective",
 };
 
 export default async function GaragePage() {

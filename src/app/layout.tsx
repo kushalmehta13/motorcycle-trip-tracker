@@ -15,9 +15,9 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "MOTO.TRACKER — The Rides & Garage",
+  title: "Ride Collective — The Rides & Garage",
   description:
-    "Hand-picked motorcycle rides and your personal garage. Maps, mileage, and mood tags for roads worth the detour.",
+    "Ride Collective is hand-picked motorcycle rides and your personal garage. Maps, mileage, and mood tags for roads worth the detour.",
 };
 
 export default function RootLayout({

@@ -10,9 +10,9 @@ export default function SignUpPage() {
       <div className="mx-auto w-full max-w-md grow px-4 pt-16 pb-20 sm:pt-24">
         <Link href="/" className="mb-8 flex items-center justify-center gap-2.5">
           <span className="brutal-chip inline-block bg-accent-yellow px-2 py-1 font-display text-base leading-none">
-            MOTO
+            RIDE
           </span>
-          <span className="font-display text-lg tracking-tight">TRACKER</span>
+          <span className="font-display text-lg tracking-tight">COLLECTIVE</span>
         </Link>
 
         <h1 className="font-display mb-8 text-center text-3xl uppercase sm:text-4xl">

@@ -8,7 +8,7 @@ import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Share a ride — MOTO.TRACKER",
+  title: "Share a ride — Ride Collective",
 };
 
 export default async function AddRidePage() {

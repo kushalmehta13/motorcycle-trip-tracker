@@ -10,7 +10,7 @@ import { getTripBySlug } from "@/lib/trips";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Edit ride — MOTO.TRACKER",
+  title: "Edit ride — Ride Collective",
 };
 
 export default async function EditTripPage({

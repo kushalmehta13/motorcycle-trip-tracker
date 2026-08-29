@@ -100,7 +100,7 @@ export default async function HomePage({
           <h1 className="font-display text-4xl leading-[1.02] uppercase sm:text-6xl">
             Ride{" "}
             <span className="brutal-chip inline-block bg-accent-pink px-3 py-1 text-paper">
-              atlas
+              Collective
             </span>
           </h1>
           <p className="mt-5 max-w-md text-base font-medium leading-relaxed">
