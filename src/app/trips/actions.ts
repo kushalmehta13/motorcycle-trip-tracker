@@ -73,7 +73,7 @@ function validateTripInput(input: TripFormInput): string | null {
       return "That imported track looks empty.";
     }
     if (input.route.length > 800) {
-      return "That track is too long — try a trimmed GPX.";
+      return "That track is too long. Try a trimmed GPX.";
     }
     for (const [lat, lng] of input.route) {
       if (
@@ -98,7 +98,7 @@ function validateTripInput(input: TripFormInput): string | null {
       stop.lng < -180 ||
       stop.lng > 180
     ) {
-      return "One of the stops looks invalid — remove it and try again.";
+      return "One of the stops looks invalid. Remove it and try again.";
     }
   }
   if (!Number.isFinite(input.miles) || input.miles <= 0 || input.miles > 5000) {

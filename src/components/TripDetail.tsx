@@ -166,7 +166,7 @@ export default function TripDetail({
           </ul>
         ) : (
           <p className="mt-3 text-sm font-medium opacity-60">
-            No ride reports yet — be the first to weigh in.
+            No ride reports yet. Be the first to weigh in.
           </p>
         )}
 

@@ -76,7 +76,7 @@ export default function NewBikeForm() {
     } catch {
       setError(
         photo
-          ? "Photo upload failed — is Vercel Blob connected? Try again or submit without a photo."
+          ? "Photo upload failed. Is Vercel Blob connected? Try again or submit without a photo."
           : "Something went wrong. Try again.",
       );
       setBusy(false);

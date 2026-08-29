@@ -424,7 +424,7 @@ export default function CommunityTripForm({
             ariaLabel="Difficulty"
             options={[1, 2, 3, 4, 5].map((level) => ({
               value: String(level),
-              label: `${level} — ${["Sunday cruise", "Relaxed", "Moderate", "Demanding", "Expert only"][level - 1]}`,
+              label: `${level} · ${["Sunday cruise", "Relaxed", "Moderate", "Demanding", "Expert only"][level - 1]}`,
             }))}
             value={String(difficulty)}
             onValueChange={(value) => setDifficulty(Number(value))}

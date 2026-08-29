@@ -104,7 +104,7 @@ export default async function HomePage({
             </span>
           </h1>
           <p className="mt-5 max-w-md text-base font-medium leading-relaxed">
-            Community-built roads worth the detour — drill down from continent
+            Community-built roads worth the detour. Drill down from continent
             to state and find your next ride.
           </p>
 
@@ -264,8 +264,8 @@ export default async function HomePage({
             <h2 className="font-display text-xl uppercase">Nothing here yet</h2>
             <p className="text-sm font-medium">
               {continent || country || state || params.category || params.q
-                ? "No rides match those filters — reset them or explore another region."
-                : "No rides yet — be the first to share one."}
+                ? "No rides match those filters. Reset them or explore another region."
+                : "No rides yet. Be the first to share one."}
             </p>
           </div>
         )}

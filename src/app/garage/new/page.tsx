@@ -6,7 +6,7 @@ import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Add a bike — Ride Collective",
+  title: "Add a bike · Ride Collective",
 };
 
 export default function NewBikePage() {

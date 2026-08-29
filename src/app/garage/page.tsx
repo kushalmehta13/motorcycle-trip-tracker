@@ -16,7 +16,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Garage — Ride Collective",
+  title: "Garage · Ride Collective",
 };
 
 export default async function GaragePage() {
@@ -107,7 +107,7 @@ export default async function GaragePage() {
             </span>
           </h2>
           <p className="mt-2 text-sm font-medium opacity-70">
-            Rides you shared with the community. Roads change — keep them honest.
+            Rides you shared with the community. Roads change, so keep them honest.
           </p>
 
           {!error && contributions.length === 0 ? (
