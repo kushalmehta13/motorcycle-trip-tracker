@@ -45,7 +45,6 @@ export async function SiteHeader({
                 Garage
               </Link>
             )}
-            <span className="hidden opacity-40 sm:inline">Log</span>
           </nav>
 
           {userId ? (
