@@ -58,10 +58,6 @@ export default async function HomePage({
       err instanceof Error ? err.message : "Something went wrong loading trips.";
   }
 
-  const totalMiles = Math.round(
-    trips.reduce((sum, trip) => sum + trip.miles, 0),
-  );
-
   const crumbs: { label: string; href: string }[] = [{ label: "Worldwide", href: "/" }];
   if (continent) {
     crumbs.push({
@@ -122,15 +118,6 @@ export default async function HomePage({
                   Routes
                 </div>
               </div>
-              <div className="brutal-chip bg-white px-4 py-2">
-                <div className="font-display text-lg leading-none">
-                  {totalMiles.toLocaleString("en-US")} MI
-                </div>
-                <div className="mt-1 text-[10px] font-bold tracking-[0.18em] uppercase opacity-60">
-                  Total miles
-                </div>
-              </div>
-
               <Link
                 href="/add-ride"
                 className="brutal-chip inline-block bg-accent-teal px-4 py-2 font-display text-sm tracking-widest uppercase text-paper transition-transform duration-150 hover:-translate-y-0.5"
@@ -278,13 +265,13 @@ export default async function HomePage({
             <p className="text-sm font-medium">
               {continent || country || state || params.category || params.q
                 ? "No rides match those filters — reset them or explore another region."
-                : "The catalog is empty — be the first to share a ride."}
+                : "No rides yet — be the first to share one."}
             </p>
           </div>
         )}
 
         {!error && trips.length > 0 && (
-          <section aria-label="Trip catalog">
+          <section aria-label="Ride list">
             {(continent || country) && (
               <h2 className="font-display mb-6 text-sm tracking-[0.18em] uppercase opacity-70">
                 {trips.length} {trips.length === 1 ? "ride" : "rides"} · sorted by{" "}

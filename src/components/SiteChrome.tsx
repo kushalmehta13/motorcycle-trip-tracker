@@ -30,7 +30,7 @@ export async function SiteHeader({
                   : "opacity-60 hover:opacity-100"
               }`}
             >
-              Catalog
+              The Rides
             </Link>
             {userId && (
               <Link

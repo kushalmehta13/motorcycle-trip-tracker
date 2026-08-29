@@ -26,7 +26,7 @@ export default async function AddRidePage() {
           href="/"
           className="text-[11px] font-bold tracking-[0.18em] uppercase opacity-60 transition-opacity hover:opacity-100"
         >
-          ← Back to catalog
+          ← Back to The Rides
         </Link>
 
         <h1 className="font-display mt-4 mb-3 text-3xl leading-tight uppercase sm:text-5xl">

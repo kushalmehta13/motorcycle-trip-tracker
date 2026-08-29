@@ -172,12 +172,12 @@ export default async function GaragePage() {
 
           {!error && saved.length === 0 ? (
             <div className="brutal-card mt-6 border-dashed bg-white p-6 text-sm font-medium opacity-70">
-              Nothing saved yet. Browse the{" "}
+              Nothing saved yet. Browse{" "}
               <Link
                 href="/"
                 className="underline decoration-2 underline-offset-2"
               >
-                catalog
+                The Rides
               </Link>{" "}
               and stash rides on your wishlist or mark them as planned.
             </div>
