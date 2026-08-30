@@ -5,6 +5,7 @@ config();
 import { sql } from "drizzle-orm";
 import { getDb } from "../src/db";
 import { trips, type NewTrip } from "../src/db/schema";
+import { seedRides } from "./seed-rides";
 
 const seedTrips: NewTrip[] = [
   {
@@ -225,6 +226,7 @@ const seedTrips: NewTrip[] = [
       [46.5285, 10.4525],
     ],
   },
+  ...seedRides,
 ];
 
 async function main() {
